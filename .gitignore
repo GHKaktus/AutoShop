@@ -1,0 +1,157 @@
+# === Общие игнорируемые файлы ===
+*.log
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+# === Docker ===
+docker-compose.override.yml
+.dockerignore
+*.dockerfile
+
+# Артефакты сборки Docker
+/docker/build/
+/docker/tmp/
+
+# Локальные образы
+*.tar
+*.tgz
+
+# === Ruby on Rails (backend/) ===
+/backend/log/*.log
+/backend/tmp/
+/backend/.bundle/
+/backend/vendor/bundle/
+/backend/public/assets
+/backend/public/packs
+/backend/node_modules/
+/backend/yarn-error.log
+
+# PostgreSQL — не игнорируем миграции, но игнорируем локальные данные
+/backend/db/*.sqlite3
+/backend/db/*.dump
+
+# Компилированные бинарные файлы Ruby
+*.gem
+*.rbc
+
+# Файлы IDE
+.idea/
+*.sw?
+*.un~
+*.swo
+*.swn
+
+# Кэши
+/backend/tmp/cache/
+/backend/tmp/pids/
+/backend/tmp/sockets/
+/backend/tmp/storage/
+
+# Локальные настройки
+/backend/config/master.key
+/backend/config/credentials.yml.enc
+
+# === React (frontend/) ===
+/frontend/node_modules/
+/frontend/.pnp/
+/frontend/.pnp.js
+/frontend/dist/
+/frontend/build/  # Сборка для продакшена — генерируется автоматически
+/frontend/.DS_Store
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+
+# Production
+/frontend/build
+/frontend/.nyc_output
+/frontend/coverage/
+
+# IDE
+/frontend/.idea/
+/frontend/.vscode/
+/frontend/.vs/
+
+# TypeScript
+/frontend/src/react-app-env.d.ts
+/frontend/src/setupProxy.js
+
+# === Тестирование ===
+/tests/__pycache__/
+/tests/*.py[cod]
+/tests/*$py.class
+/tests/*.so
+/tests/.Python
+/tests/build/
+/tests/develop-eggs/
+/tests/dist/
+/tests/downloads/
+/tests/eggs/
+/tests/.eggs/
+/tests/lib/
+/tests/lib64/
+/tests/parts/
+/tests/sdist/
+/tests/var/
+/tests/wheels/
+/tests/*.egg-info/
+/tests/.installed.cfg
+/tests/*.egg
+
+# Mock‑сервер
+/tests/mock-server/__pycache__/
+/tests/mock-server/*.pyc
+/tests/mock-server/.env
+/tests/mock-server/venv/
+
+# Виртуальные окружения для тестов
+/tests/venv/
+/tests/ENV/
+/tests/env.bak/
+/tests/venv.bak/
+
+# Отчёты тестов
+/tests/htmlcov/
+/tests/.tox/
+/tests/.coverage
+/tests/.coverage.*
+/tests/.cache
+/tests/nosetests.xml
+/tests/coverage.xml
+/tests/*.cover
+/tests/.hypothesis/
+
+# Jupyter Notebook
+/tests/.ipynb_checkpoints
+
+# IPython
+/tests/profile_default/
+/tests/ipython_config.py
+
+# === Другие файлы проекта ===
+*.env
+*.env.*
+/backend/.env
+!/backend/.env-example
+
+# Временные файлы сборки
+*.pid
+*.pid.lock
+
+# Локальные файлы разработки
+.vscode/
+.vs/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Артефакты CI/CD
+/coverage/
+/tmp/
+/dist/

@@ -1,0 +1,930 @@
+openapi: 3.0.0
+info:
+  title: AutoShop API
+  description: API для интернет‑магазина автотоваров
+  version: 1.0.0
+tags:
+  - name: Base
+    description: Общие эндопинты
+  - name: Basket
+    description: Управление корзиной пользователя
+  - name: Auth
+    description: Регистрация, авторизация, выход из системы (всё с JWT токенами)
+  - name: Admin
+    description: Админимстративные эндпоинты (для тестов и управления)  
+
+components:
+  schemas:
+    Account:
+      description: Аккаунт пользователя
+      type: object
+      required:
+        - email
+        - password
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+          description: "Email пользователя — используется для входа в систему"
+        password:
+          type: string
+          minLength: 6
+          maxLength: 128
+          writeOnly: true
+          example: "MySecurePassword123"
+          description: Пароль пользователя. Не возвращается в ответах API
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+          example: "user"
+          description: |
+            Роль пользователя в системе:
+            - user: обычный пользователь
+            - admin: администратор (в этой версии API администратор хардкодится)
+
+    Product:
+      description: Полная информация о товаре
+      type: object
+      required:
+        - id
+        - name
+        - cost
+        - stock
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 12345
+          description: Уникальный идентификатор товара в системе
+        name:
+          type: string
+          example: "Воздушный фильтр"
+          description: Название товара
+        cost:
+          type: integer
+          format: int32
+          example: 500
+          description: Стоимость товара
+        sale_cost:
+          type: integer
+          format: int32
+          example: 450
+          default: -1
+          description: Скидочная стоимость товара (если не -1)
+        picture:
+          type: string
+          format: uri
+          example: "/images/filter.jpg"
+          description: Картинка товара (через относительный путь на сервере)
+        description:
+          type: string
+          example: "Описание товара..."
+          description: Описание товара
+        stock:
+          type: boolean
+          description: Находится ли товар на складе
+
+    Order:
+      description: Полная информация о заказе
+      type: object
+      required:
+          - id
+          - user_id
+          - name
+          - phone
+          - email
+          - status
+          - total_amount
+          - items
+          - created_at
+          - updated_at
+          - address
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 12345
+          description: Уникальный идентификатор заказа в системе
+        user_id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 6789
+          description: ID пользователя, оформившего заказ
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Иван"
+          description: Имя покупателя
+        phone:
+          type: string
+          pattern: '^\\+?\\d{10,15}$'
+          example: "+79161234567"
+          description: Номер телефона покупателя (допускается + и цифры)
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+          description: Email покупателя
+        comment:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Оставьте у двери"
+          description: Дополнительный комментарий к заказу (опционально)
+        status:
+          type: string
+          enum:
+            - pending
+            - processing
+            - shipped
+            - delivered
+            - cancelled
+          example: "processing"
+          description: |
+            Статус заказа:
+            - pending: ожидает обработки (или оплаты)
+            - processing: в обработке
+            - shipped: отправлен
+            - delivered: доставлен
+            - cancelled: отменён
+        total_amount:
+          type: integer
+          format: int32
+          minimum: 0
+          example: 2500
+          description: Общая сумма заказа в рублях (с учётом количества товаров)
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            properties:
+              product_id:
+                type: integer
+                format: int64
+                example: 1
+                description: ID товара
+              quantity:
+                type: integer
+                minimum: 1
+                example: 2
+                description: Количество данного товара в заказе
+              name:
+                type: string
+                example: "Воздушный фильтр"
+                description: Название товара
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2023-10-15T14:30:00Z"
+          description: Дата и время создания заказа (UTC)
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2023-10-15T15:45:00Z"
+          description: Дата и время последнего обновления заказа (UTC)
+        address:
+          type: string
+          maxLength: 300
+          example: "г. Москва, ул. Ленина, д. 1, кв. 25"
+          description: Адрес доставки (или самовывоза)
+
+    OrderForm:
+      description: Клиентская часть информации о заказе
+      type: object
+      required:
+        - name
+        - phone
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Иван"
+          description: "Имя покупателя"
+        phone:
+          type: string
+          pattern: '^\\+?\\d{10,15}$'
+          example: "+79161234567"
+          description: "Номер телефона (допускается + и цифры)"
+        email:
+          type: string
+          format: email
+          example: "ivan@example.com"
+          description: "Email покупателя"
+        comment:
+          type: string
+          nullable: true
+          maxLength: 500
+          example: "Оставьте у двери"
+          description: "Дополнительный комментарий к заказу (опционально)"
+
+    Error:
+      description: Ошибка
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /:
+    get:
+      tags:
+      - Base
+      summary: Главная страница SPA
+      description: Возвращает статические файлы React SPA
+      responses:
+        '200':
+          description: Успешно возвращены статические файлы
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          description: Ресурс не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /catalog/{id}:
+    get:
+      tags:
+      - Base
+      summary: Получить товары по категории
+      description: Получение товаров из указанной категории с пагинацией
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор категории
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Номер страницы (каждая страница — 20 товаров к примеру)
+
+      responses:
+        '200':
+          description: Товары успешно возвращены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_items:
+                    type: integer
+                    example: 150
+                  current_page:
+                    type: integer
+                    example: 0
+                  page_size:
+                    type: integer
+                    example: 20
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '400':
+          description: Неверный формат параметров
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Категория не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/{id}:
+    get:
+      tags:
+      - Base
+      summary: Получить информацию о товаре
+      description: Получение полной информации о конкретном товаре
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор товара
+      responses:
+        '200':
+          description: Товар успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /basket:
+    get:
+      tags:
+        - Basket
+      summary: Получить корзину пользователя
+      description: Получение содержимого корзины текущего пользователя (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Корзина успешно получена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - product
+                        - quantity
+                      properties:
+                        product:
+                          $ref: '#/components/schemas/Product'
+                        quantity:
+                          type: integer
+                          minimum: 1
+                          example: 2
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Basket
+      summary: Добавить товар в корзину
+      description: Добавление товара в корзину текущего пользователя (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - product_id
+                - quantity
+              properties:
+                product_id:
+                  type: integer
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Товар успешно добавлен в корзину пользователя
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /basket/{id}:
+    delete:
+      tags:
+        - Basket
+      summary: Удалить товар из корзины
+      description: Удаляет указанный товар из корзины текущего пользователя (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID товара, который нужно удалить из корзины
+      responses:
+        '200':
+          description: Товар успешно удалён из корзины
+        '400':
+          description: Неверный формат ID товара
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден в корзине
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /basket/order:
+    post:
+      tags:
+        - Basket
+      summary: Создать заказ из корзины
+      description: Создаёт новый заказ на основе товаров в корзине текущего пользователя (security - bearerAuth {JWT}). Данные заказа сохраняются в БД и отображаются в админ‑панели
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderForm'
+      responses:
+        '201':
+          description: "Заказ успешно создан"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: integer
+                    format: int64
+                    example: 12345
+                  total_amount:
+                    type: integer
+                    format: int32
+                    example: 2500
+                    description: "Общая сумма заказа в рублях"
+                  message:
+                    type: string
+                    example: "Заказ принят. С вами свяжутся для подтверждения."
+        '400':
+          description: "Неверные данные заказа"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /search:
+    get:
+      tags:
+        - Base
+      summary: Поиск товаров
+      description: Поиск товаров по строке запроса
+      parameters:
+        - name: q
+          description: Сам запрос (данные в строке поиска)
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          description: Номер страницы (каждая страница — 20 товаров к примеру)
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Результаты поиска
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_tiems:
+                    type: integer
+                    example: 150
+                  current_page:
+                    type: integer
+                    example: 0
+                  page_size:
+                    type: integer
+                    example: 20
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '400':
+          description: Неверный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/sign-up:
+    post:
+      tags:
+        - Auth
+      summary: Регистрация нового пользователя
+      description: Создаёт учётную запись пользователя с указанием email и пароля, выдаёт JWT-токен
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                  description: "Email пользователя (будет использоваться для входа)"
+                password:
+                  type: string
+                  minLength: 6
+                  maxLength: 128
+                  example: "MySecurePassword123"
+                  description: "Пароль (минимум 6 символов)"
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Неверные данные для регистрации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                validation-error:
+                  value:
+                    error: "validation_error"
+                    message: "Email уже зарегистрирован"
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/sign-in:
+    post:
+      tags:
+        - Auth
+      summary: Авторизация пользователя
+      description: Аутентификация пользователя по email и паролю, выдаёт JWT‑токен
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  example: "MySecurePassword123"
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Неверные учётные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                unauthorized:
+                  value:
+                    error: "unauthorized"
+                    message: "Неверный email или пароль"
+        '400':
+          description: Неверный формат данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Выход из системы
+      description: Завершает сессию пользователя, аннулирует JWT-токен
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный выход из системы
+        '401':
+          description: Неавторизованный доступ (неверный или отсутствующий токен)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/orders:
+    get:
+      tags:
+        - Admin
+      summary: Временный эндпоинт - получить все заказы
+      description: Возвращает список всех заказов с подробной информацией (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Номер страницы (каждая страница — 20 заказов к примеру)
+      responses:
+        '200':
+          description: Список заказов успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_orders:
+                    type: integer
+                    example: 150
+                  current_page:
+                    type: integer
+                    example: 0
+                  page_size:
+                    type: integer
+                    example: 20
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Admin
+      summary: Временный эндпоинт - удалить все заказы
+      description: Полностью удаляет все заказы из системы (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Все заказы успешно удалены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted_count:
+                    type: integer
+                    example: 150
+                    description: "Количество удалённых заказов"
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при удалении заказов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Временный эндпоинт - получить всех пользователей
+      description: Возвращает список всех зарегистрированных пользователей (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Номер страницы (каждая страница — 20 заказов к примеру)
+      responses:
+        '200':
+          description: Список пользователей успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_orders:
+                    type: integer
+                    example: 150
+                  current_page:
+                    type: integer
+                    example: 0
+                  page_size:
+                    type: integer
+                    example: 20
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Admin
+      summary: Временный эндпоинт - удалить всех пользователей
+      description: Полностью удаляет всех пользователей из системы (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Все пользователи успешно удалены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted_count:
+                    type: integer
+                    example: 150
+                    description: "Количество удалённых пользователей"
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при удалении пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
