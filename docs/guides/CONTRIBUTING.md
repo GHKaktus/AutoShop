@@ -18,6 +18,7 @@ autoshop/
 ├── docs/
 │   ├── api/                # Документация API
 │   └── guides/             # Руководства по работе
+│       └── CONTRIBUTING.md         # Этот файл
 ├── tests/
 │   └── mock-server/        # Python mock‑сервер для тестирования
 │       ├── app.py
