@@ -19,14 +19,36 @@ docker-compose.override.yml
 *.tgz
 
 # === Ruby on Rails (backend/) ===
-/backend/log/*.log
-/backend/tmp/
 /backend/.bundle/
 /backend/vendor/bundle/
 /backend/public/assets
 /backend/public/packs
 /backend/node_modules/
 /backend/yarn-error.log
+
+# Ignore all environment files.
+/backend/.env*
+
+# Ignore all logfiles and tempfiles.
+/backend/log/*
+/backend/tmp/*
+!/backend/log/.keep
+!/backend/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/backend/tmp/pids/*
+!/backend/tmp/pids/
+!/backend/tmp/pids/.keep
+
+# Ignore storage (uploaded files in development and any SQLite databases).
+/backend/storage/*
+!/backend/storage/.keep
+/backend/tmp/storage/*
+!/backend/tmp/storage/
+!/backend/tmp/storage/.keep
+
+# Ignore key files for decrypting credentials and more.
+/backend/config/*.key
 
 # PostgreSQL — не игнорируем миграции, но игнорируем локальные данные
 /backend/db/*.sqlite3
