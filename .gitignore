@@ -19,40 +19,40 @@ docker-compose.override.yml
 *.tgz
 
 # === Ruby on Rails (backend/) ===
-/backend/.bundle/
-/backend/vendor/bundle/
-/backend/public/assets
-/backend/public/packs
-/backend/node_modules/
-/backend/yarn-error.log
+/backend/AutoShop/.bundle/
+/backend/AutoShop/vendor/bundle/
+/backend/AutoShop/public/assets
+/backend/AutoShop/public/packs
+/backend/AutoShop/node_modules/
+/backend/AutoShop/yarn-error.log
 
 # Ignore all environment files.
-/backend/.env*
+/backend/AutoShop/.env*
 
 # Ignore all logfiles and tempfiles.
-/backend/log/*
-/backend/tmp/*
-!/backend/log/.keep
-!/backend/tmp/.keep
+/backend/AutoShop/log/*
+/backend/AutoShop/tmp/*
+!/backend/AutoShop/log/.keep
+!/backend/AutoShop/tmp/.keep
 
 # Ignore pidfiles, but keep the directory.
-/backend/tmp/pids/*
-!/backend/tmp/pids/
-!/backend/tmp/pids/.keep
+/backend/AutoShop/tmp/pids/*
+!/backend/AutoShop/tmp/pids/
+!/backend/AutoShop/tmp/pids/.keep
 
 # Ignore storage (uploaded files in development and any SQLite databases).
-/backend/storage/*
-!/backend/storage/.keep
-/backend/tmp/storage/*
-!/backend/tmp/storage/
-!/backend/tmp/storage/.keep
+/backend/AutoShop/storage/*
+!/backend/AutoShop/storage/.keep
+/backend/AutoShop/tmp/storage/*
+!/backend/AutoShop/tmp/storage/
+!/backend/AutoShop/tmp/storage/.keep
 
 # Ignore key files for decrypting credentials and more.
-/backend/config/*.key
+/backend/AutoShop/config/*.key
 
 # PostgreSQL — не игнорируем миграции, но игнорируем локальные данные
-/backend/db/*.sqlite3
-/backend/db/*.dump
+/backend/AutoShop/db/*.sqlite3
+/backend/AutoShop/db/*.dump
 
 # Компилированные бинарные файлы Ruby
 *.gem
