@@ -1,0 +1,11 @@
+export const BASE_ROUTE: string = '/'; // главная страница
+export const CATALOG_ROUTE: string = '/catalog'; // категории товаров
+export const CATALOG_ID_ROUTE: string = '/catalog/:id'; // пока что не реализован
+export const ABOUT_ROUTE: string = '/about'; // сюда включено все(кроме новостей и отзывов) о компании: О компании, Лицензии, Партнеры и FAQ
+export const ABOUT_NEWS_ROUTE: string = '/about/news'; // отдельно ТОЛЬКО новости
+export const ABOUT_REVIEWS_ROUTE: string = '/about/reviews'; // отдельно ТОЛЬКО отзывы
+export const SEARCH_ROUTE: string = '/search';
+export const PRODUCTS_ROUTE: string = '/products';
+export const BASKET_ROUTE: string = '/basket'; // корзина
+export const BASKET_OFFER_ROUTE: string = '/basket/offer'; // оформление заказа
+export const CONTACTS_ROUTE: string = '/contacts'; // страница контактов
