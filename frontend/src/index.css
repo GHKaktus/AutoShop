@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-Thin.woff2') format('woff2');
+    font-weight: 100;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('@assets/fonts/Roboto-ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+    font-display: wrap;
+}
+
+@theme {
+    --font-family-base: 'Roboto', sans-serif;
+    --color-red: #C53720;
+    --color-black1: #0E0E0E;
+    --color-black2: #1D1D1D;
+
+    --breakpoint-sm: 480px;
+    --breakpoint-md: 767px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1200px;
+    --breakpoint-2xl: 1920px;
+}
+
+@layer utilities {
+    .container {
+        max-width: 1200px;
+        width: 100%;
+        padding-inline: 20px;
+        margin-inline: auto;
+    }
+
+    .container.px-0 {
+        padding-inline: 0px;
+    }
+
+    .abs-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        translate: -50% -50%;
+    }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        border: 0;
+        padding: 0;
+        white-space: nowrap;
+        clip-path: inset(100%);
+        clip: rect(0 0 0 0);
+        overflow: hidden;
+    }
+
+    .bg-home-welcome,
+    .bg-home-about,
+    .bg-home-products {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .bg-home-welcome--1 {
+        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+    }
+
+    .bg-home-welcome--2 {
+        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+    }
+
+    .bg-home-welcome--3 {
+        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+    }
+
+    .bg-home-welcome--4 {
+        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+    }
+
+    .bg-home-products--phara {
+        background-image: url('@assets/images/home-component/products-section/bg-phara.png');
+    }
+
+    .bg-home-about--porsche {
+        background-image: url('@assets/images/home-component/about-section/bg-porsche-center.png');
+    }
+
+    .bg-home-products--akkum {
+        background-image: url('@assets/images/catalog-component/categories/akkumulyator.png');
+    }
+
+    .bg-home-products--avtomasla {
+        background-image: url('@assets/images/catalog-component/categories/avtomaslo.png');
+    }
+
+    .bg-home-products--avtohimia {
+        background-image: url('@assets/images/catalog-component/categories/avtohimia.png');
+    }
+
+    .bg-home-products--aksess {
+        background-image: url('@assets/images/catalog-component/categories/aksessuari.png');
+    }
+
+    .paganation-is-active {
+        background-color: var(--color-red);
+    }
+}
