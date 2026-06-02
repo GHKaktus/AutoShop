@@ -9,6 +9,14 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
+  scope module: :api, defaults: { format: :json } do
+    scope :auth, as: :auth do
+      post "sign-up", to: "auth#sign_up", as: :sign_up
+      post "sign-in", to: "auth#sign_in", as: :sign_in
+      post "logout",  to: "auth#logout",  as: :logout
+    end
+  end
+
   # Defines the root path route ("/")
   # root "posts#index"
 end
