@@ -20,6 +20,13 @@ Rails.application.routes.draw do
       post "sign-in", to: "auth#sign_in", as: :sign_in
       post "logout",  to: "auth#logout",  as: :logout
     end
+
+    scope :basket, as: :basket do
+      get    "",         to: "basket#show",    as: :show
+      post   "",         to: "basket#create",  as: :create
+      delete ":id",      to: "basket#destroy", as: :destroy
+      post   "order",    to: "basket/orders#create", as: :order
+    end
   end
 
   # Defines the root path route ("/")
