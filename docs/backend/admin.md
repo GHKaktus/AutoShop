@@ -62,9 +62,19 @@ Authorization: Bearer <JWT>
 
 ### `POST /admin/products`
 
-Тело (обязательные поля по модели): `name`, `cost`, `category_id`; опционально: `sale_cost`, `picture`, `description`, `stock`.
+Тело (см. `docs/api/openapi.yaml`):
 
-Ответ `201 Created` — объект `Product`.
+| Поле | Обязательно | Описание |
+|------|-------------|----------|
+| `name` | да | Название |
+| `cost` | да | Цена (≥ 0) |
+| `category_id` | да | ID категории |
+| `sale_cost` | нет | По умолчанию `-1` |
+| `picture` | нет | Путь к изображению |
+| `description` | нет | Описание |
+| `stock` | нет | По умолчанию `true` |
+
+Ответ `201 Created` — объект `Product` (схема Product в OpenAPI).
 
 ## Тесты
 
