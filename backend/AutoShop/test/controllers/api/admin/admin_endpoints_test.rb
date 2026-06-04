@@ -53,14 +53,14 @@ module Api
         assert_equal 0, Order.count
       end
 
-      test "GET /admin/users returns paginated accounts (OpenAPI field names)" do
+      test "GET /admin/users returns paginated accounts" do
         get admin_users_path, headers: @admin_headers, as: :json
 
         assert_response :success
         body = response.parsed_body
-        assert_equal 2, body["total_orders"]
-        assert_equal 2, body["orders"].size
-        assert body["orders"].any? { |a| a["role"] == "admin" }
+        assert_equal 2, body["total_users"]
+        assert_equal 2, body["users"].size
+        assert body["users"].any? { |a| a["role"] == "admin" }
       end
 
       test "DELETE /admin/users removes all accounts" do

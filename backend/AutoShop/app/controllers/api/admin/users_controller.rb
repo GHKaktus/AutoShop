@@ -5,10 +5,9 @@ module Api
         scope = Account.order(:id)
         page_scope = paginated_scope(scope)
 
-        # Поля total_orders/orders — как в OpenAPI (опечатка в спецификации для users).
         render json: admin_list_payload(
-          total_key:      :total_orders,
-          collection_key: :orders,
+          total_key:      :total_users,
+          collection_key: :users,
           scope:          scope,
           items:          AccountSerializer.collection_as_json(page_scope)
         )

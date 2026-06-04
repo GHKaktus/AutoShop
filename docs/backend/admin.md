@@ -42,7 +42,7 @@ Authorization: Bearer <JWT>
 
 ### `GET /admin/users`
 
-Поля ответа соответствуют OpenAPI (в т.ч. `total_orders` и `orders` для массива аккаунтов).
+Ответ: `{ "total_users", "current_page", "page_size", "users": [ Account, ... ] }`.
 
 ### `DELETE /admin/users`
 
