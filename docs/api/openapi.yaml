@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: AutoShop API
   description: API для интернет‑магазина автотоваров
-  version: 1.0.0
+  version: 1.1.0
 tags:
   - name: Base
     description: Общие эндпоинты
