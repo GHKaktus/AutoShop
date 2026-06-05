@@ -2,16 +2,16 @@ openapi: 3.0.0
 info:
   title: AutoShop API
   description: API для интернет‑магазина автотоваров
-  version: 1.0.0
+  version: 1.1.0
 tags:
   - name: Base
-    description: Общие эндопинты
+    description: Общие эндпоинты
   - name: Basket
     description: Управление корзиной пользователя
   - name: Auth
     description: Регистрация, авторизация, выход из системы (всё с JWT токенами)
   - name: Admin
-    description: Админимстративные эндпоинты (для тестов и управления)  
+    description: Административные эндпоинты (для тестов и управления)  
 
 components:
   schemas:
@@ -44,7 +44,7 @@ components:
           description: |
             Роль пользователя в системе:
             - user: обычный пользователь
-            - admin: администратор (в этой версии API администратор хардкодится)
+            - admin: администратор
 
     Product:
       description: Полная информация о товаре
@@ -66,13 +66,13 @@ components:
           example: "Воздушный фильтр"
           description: Название товара
         cost:
-          type: integer
-          format: int32
+          type: number
+          format: float
           example: 500
           description: Стоимость товара
         sale_cost:
-          type: integer
-          format: int32
+          type: number
+          format: float
           example: 450
           default: -1
           description: Скидочная стоимость товара (если не -1)
@@ -86,8 +86,10 @@ components:
           example: "Описание товара..."
           description: Описание товара
         stock:
-          type: boolean
-          description: Находится ли товар на складе
+          type: integer
+          minimum: 0
+          example: 42
+          description: Остаток товара на складе (количество единиц)
 
     Order:
       description: Полная информация о заказе
@@ -103,7 +105,6 @@ components:
           - items
           - created_at
           - updated_at
-          - address
       properties:
         id:
           type: integer
@@ -156,8 +157,8 @@ components:
             - delivered: доставлен
             - cancelled: отменён
         total_amount:
-          type: integer
-          format: int32
+          type: number
+          format: float
           minimum: 0
           example: 2500
           description: Общая сумма заказа в рублях (с учётом количества товаров)
@@ -193,11 +194,6 @@ components:
           readOnly: true
           example: "2023-10-15T15:45:00Z"
           description: Дата и время последнего обновления заказа (UTC)
-        address:
-          type: string
-          maxLength: 300
-          example: "г. Москва, ул. Ленина, д. 1, кв. 25"
-          description: Адрес доставки (или самовывоза)
 
     OrderForm:
       description: Клиентская часть информации о заказе
@@ -238,6 +234,43 @@ components:
           type: string
         message:
           type: string
+
+    Category:
+      description: Категория товаров
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 1
+          description: Уникальный идентификатор категории
+        name:
+          type: string
+          example: "Воздушные фильтры"
+          description: Название категории
+        description:
+          type: string
+          example: "Все виды воздушных фильтров для автомобилей"
+          description: Описание категории (опционально)
+
+    CategoryForm:
+      description: Форма создания/редактирования категории
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Воздушные фильтры"
+          description: Название категории
+        description:
+          type: string
+          example: "Все виды воздушных фильтров для автомобилей"
+          description: Описание категории (опционально)
 
   securitySchemes:
     bearerAuth:
@@ -530,8 +563,8 @@ paths:
                     format: int64
                     example: 12345
                   total_amount:
-                    type: integer
-                    format: int32
+                    type: number
+                    format: float
                     example: 2500
                     description: "Общая сумма заказа в рублях"
                   message:
@@ -577,7 +610,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  total_tiems:
+                  total_items:
                     type: integer
                     example: 150
                   current_page:
@@ -851,7 +884,7 @@ paths:
           schema:
             type: integer
             default: 0
-          description: Номер страницы (каждая страница — 20 заказов к примеру)
+          description: Номер страницы (каждая страница — 20 пользователей к примеру)
       responses:
         '200':
           description: Список пользователей успешно получен
@@ -1006,14 +1039,14 @@ paths:
                   example: "Воздушный фильтр"
                   description: Название товара
                 cost:
-                  type: integer
-                  format: int32
+                  type: number
+                  format: float
                   minimum: 0
                   example: 500
                   description: Стоимость товара в рублях
                 sale_cost:
-                  type: integer
-                  format: int32
+                  type: number
+                  format: float
                   default: -1
                   example: -1
                   description: Скидочная стоимость (-1 если скидки нет)
@@ -1031,9 +1064,11 @@ paths:
                   example: "Описание товара..."
                   description: Описание товара
                 stock:
-                  type: boolean
-                  default: true
-                  description: Находится ли товар на складе
+                  type: integer
+                  minimum: 0
+                  default: 0
+                  example: 42
+                  description: Остаток товара на складе (количество единиц)
       responses:
         '201':
           description: Товар успешно создан
@@ -1055,6 +1090,634 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /categories:
+    get:
+      tags:
+        - Base
+      summary: Получить все категории
+      description: Возвращает список всех доступных категорий товаров
+      responses:
+        '200':
+          description: Список категорий успешно получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/users/{userId}/role:
+    put:
+      tags:
+        - Admin
+      summary: Назначить роль пользователю
+      description: Изменяет роль указанного пользователя (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - user
+                    - admin
+                  example: "admin"
+                  description: Новая роль пользователя
+      responses:
+        '200':
+          description: Роль пользователя успешно изменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Неверные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/categories:
+    post:
+      tags:
+        - Admin
+      summary: Создать категорию
+      description: Создаёт новую категорию товаров (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryForm'
+      responses:
+        '201':
+          description: Категория успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/categories/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Получить категорию по ID
+      description: Возвращает информацию о конкретной категории (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор категории
+      responses:
+        '200':
+          description: Категория успешно получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Категория не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Admin
+      summary: Обновить категорию
+      description: Обновляет данные существующей категории (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор категории
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryForm'
+      responses:
+        '200':
+          description: Категория успешно обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Категория не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Admin
+      summary: Удалить категорию
+      description: Удаляет категорию из системы (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор категории
+      responses:
+        '200':
+          description: Категория успешно удалена
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Категория не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/products/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Получить товар по ID
+      description: Возвращает полную информацию о товаре (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор товара
+      responses:
+        '200':
+          description: Товар успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Admin
+      summary: Обновить товар
+      description: Обновляет данные существующего товара (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор товара
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Воздушный фильтр"
+                  description: Название товара
+                cost:
+                  type: number
+                  format: float
+                  minimum: 0
+                  example: 500
+                  description: Стоимость товара в рублях
+                sale_cost:
+                  type: number
+                  format: float
+                  default: -1
+                  example: -1
+                  description: Скидочная стоимость (-1 если скидки нет)
+                category_id:
+                  type: integer
+                  format: int64
+                  example: 1
+                  description: Идентификатор категории
+                picture:
+                  type: string
+                  example: "/images/filter.jpg"
+                  description: Относительный путь к изображению
+                description:
+                  type: string
+                  example: "Описание товара..."
+                  description: Описание товара
+                stock:
+                  type: integer
+                  minimum: 0
+                  example: 42
+                  description: Остаток товара на складе (количество единиц)
+      responses:
+        '200':
+          description: Товар успешно обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Admin
+      summary: Удалить товар
+      description: Удаляет товар из каталога (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор товара
+      responses:
+        '200':
+          description: Товар успешно удалён
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/orders/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Получить заказ по ID
+      description: Возвращает полную информацию о заказе (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор заказа
+      responses:
+        '200':
+          description: Заказ успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Admin
+      summary: Обновить заказ
+      description: Обновляет статус и данные заказа (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор заказа
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - pending
+                    - processing
+                    - shipped
+                    - delivered
+                    - cancelled
+                  example: "processing"
+                  description: Новый статус заказа
+      responses:
+        '200':
+          description: Заказ успешно обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Admin
+      summary: Удалить заказ
+      description: Удаляет конкретный заказ из системы (security - bearerAuth {JWT}). Только для администраторов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Идентификатор заказа
+      responses:
+        '200':
+          description: Заказ успешно удалён
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Заказ не найден
           content:
             application/json:
               schema:
