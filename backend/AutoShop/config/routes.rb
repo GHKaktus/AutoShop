@@ -27,6 +27,15 @@ Rails.application.routes.draw do
       delete ":id",      to: "basket#destroy", as: :destroy
       post   "order",    to: "basket/orders#create", as: :order
     end
+
+    scope :admin, as: :admin, module: :admin do
+      get    "orders",   to: "orders#index"
+      delete "orders",   to: "orders#destroy"
+      get    "users",    to: "users#index"
+      delete "users",    to: "users#destroy"
+      get    "products", to: "products#index"
+      post   "products", to: "products#create"
+    end
   end
 
   # Defines the root path route ("/")

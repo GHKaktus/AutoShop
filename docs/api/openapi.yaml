@@ -860,7 +860,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  total_orders:
+                  total_users:
                     type: integer
                     example: 150
                   current_page:
@@ -869,7 +869,7 @@ paths:
                   page_size:
                     type: integer
                     example: 20
-                  orders:
+                  users:
                     type: array
                     items:
                       $ref: '#/components/schemas/Account'
@@ -924,6 +924,143 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           description: Ошибка при удалении пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/products:
+    get:
+      tags:
+        - Admin
+      summary: Временный эндпоинт - получить все товары
+      description: Возвращает список всех товаров с пагинацией (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Номер страницы (каждая страница — 20 товаров к примеру)
+      responses:
+        '200':
+          description: Список товаров успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_products:
+                    type: integer
+                    example: 150
+                  current_page:
+                    type: integer
+                    example: 0
+                  page_size:
+                    type: integer
+                    example: 20
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Admin
+      summary: Временный эндпоинт - создать товар
+      description: Создаёт новый товар в каталоге (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - cost
+                - category_id
+              properties:
+                name:
+                  type: string
+                  example: "Воздушный фильтр"
+                  description: Название товара
+                cost:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  example: 500
+                  description: Стоимость товара в рублях
+                sale_cost:
+                  type: integer
+                  format: int32
+                  default: -1
+                  example: -1
+                  description: Скидочная стоимость (-1 если скидки нет)
+                category_id:
+                  type: integer
+                  format: int64
+                  example: 1
+                  description: Идентификатор категории
+                picture:
+                  type: string
+                  example: "/images/filter.jpg"
+                  description: Относительный путь к изображению
+                description:
+                  type: string
+                  example: "Описание товара..."
+                  description: Описание товара
+                stock:
+                  type: boolean
+                  default: true
+                  description: Находится ли товар на складе
+      responses:
+        '201':
+          description: Товар успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Доступ запрещён (недостаточно прав)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
           content:
             application/json:
               schema:
