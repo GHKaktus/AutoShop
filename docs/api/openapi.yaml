@@ -66,8 +66,8 @@ components:
           example: "Воздушный фильтр"
           description: Название товара
         cost:
-          type: integer
-          format: int32
+          type: number
+          format: float
           example: 500
           description: Стоимость товара
         sale_cost:
@@ -610,7 +610,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  total_tiems:
+                  total_items:
                     type: integer
                     example: 150
                   current_page:
@@ -1039,8 +1039,8 @@ paths:
                   example: "Воздушный фильтр"
                   description: Название товара
                 cost:
-                  type: integer
-                  format: int32
+                  type: number
+                  format: float
                   minimum: 0
                   example: 500
                   description: Стоимость товара в рублях
@@ -1461,8 +1461,8 @@ paths:
                   example: "Воздушный фильтр"
                   description: Название товара
                 cost:
-                  type: integer
-                  format: int32
+                  type: number
+                  format: float
                   minimum: 0
                   example: 500
                   description: Стоимость товара в рублях
