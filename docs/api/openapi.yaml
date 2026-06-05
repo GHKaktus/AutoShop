@@ -5,13 +5,13 @@ info:
   version: 1.0.0
 tags:
   - name: Base
-    description: Общие эндопинты
+    description: Общие эндпоинты
   - name: Basket
     description: Управление корзиной пользователя
   - name: Auth
     description: Регистрация, авторизация, выход из системы (всё с JWT токенами)
   - name: Admin
-    description: Админимстративные эндпоинты (для тестов и управления)  
+    description: Административные эндпоинты (для тестов и управления)  
 
 components:
   schemas:
@@ -44,7 +44,7 @@ components:
           description: |
             Роль пользователя в системе:
             - user: обычный пользователь
-            - admin: администратор (в этой версии API администратор хардкодится)
+            - admin: администратор
 
     Product:
       description: Полная информация о товаре
@@ -71,8 +71,8 @@ components:
           example: 500
           description: Стоимость товара
         sale_cost:
-          type: integer
-          format: int32
+          type: number
+          format: float
           example: 450
           default: -1
           description: Скидочная стоимость товара (если не -1)
@@ -157,8 +157,8 @@ components:
             - delivered: доставлен
             - cancelled: отменён
         total_amount:
-          type: integer
-          format: int32
+          type: number
+          format: float
           minimum: 0
           example: 2500
           description: Общая сумма заказа в рублях (с учётом количества товаров)
@@ -563,8 +563,8 @@ paths:
                     format: int64
                     example: 12345
                   total_amount:
-                    type: integer
-                    format: int32
+                    type: number
+                    format: float
                     example: 2500
                     description: "Общая сумма заказа в рублях"
                   message:
@@ -884,7 +884,7 @@ paths:
           schema:
             type: integer
             default: 0
-          description: Номер страницы (каждая страница — 20 заказов к примеру)
+          description: Номер страницы (каждая страница — 20 пользователей к примеру)
       responses:
         '200':
           description: Список пользователей успешно получен
@@ -1045,8 +1045,8 @@ paths:
                   example: 500
                   description: Стоимость товара в рублях
                 sale_cost:
-                  type: integer
-                  format: int32
+                  type: number
+                  format: float
                   default: -1
                   example: -1
                   description: Скидочная стоимость (-1 если скидки нет)
@@ -1467,8 +1467,8 @@ paths:
                   example: 500
                   description: Стоимость товара в рублях
                 sale_cost:
-                  type: integer
-                  format: int32
+                  type: number
+                  format: float
                   default: -1
                   example: -1
                   description: Скидочная стоимость (-1 если скидки нет)
