@@ -20,6 +20,7 @@ module Api
         order = build_order(items)
 
         ActiveRecord::Base.transaction do
+          items.each { |item| item.product.decrement_stock!(item.quantity) }
           order.save!
           basket.clear!
         end
@@ -29,6 +30,8 @@ module Api
           total_amount: order.total_amount.to_f,
           message:      SUCCESS_MESSAGE
         }, status: :created
+      rescue Product::StockInsufficient => e
+        render_error(error: "validation_error", message: e.message, status: :bad_request)
       rescue ActiveRecord::RecordInvalid => e
         render_error(
           error:   "validation_error",

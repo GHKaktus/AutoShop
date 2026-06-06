@@ -1,6 +1,8 @@
 class Product < ApplicationRecord
   NO_SALE = -1
 
+  class StockInsufficient < StandardError; end
+
   belongs_to :category
 
   has_many :basket_items, dependent: :destroy
@@ -25,5 +27,19 @@ class Product < ApplicationRecord
 
   def effective_cost
     on_sale? ? sale_cost : cost
+  end
+
+  def decrement_stock!(quantity)
+    qty = quantity.to_i
+    raise ArgumentError, "quantity must be positive" if qty < 1
+
+    with_lock do
+      if qty > stock
+        raise StockInsufficient,
+              "Недостаточно товара «#{name}» на складе (доступно: #{stock})"
+      end
+
+      update!(stock: stock - qty)
+    end
   end
 end
