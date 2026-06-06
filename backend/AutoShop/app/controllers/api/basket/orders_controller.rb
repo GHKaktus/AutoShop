@@ -3,7 +3,6 @@ module Api
     class OrdersController < Api::BaseController
       before_action :authenticate_account!
 
-      DEFAULT_ADDRESS = "Не указан (самовывоз)".freeze
       SUCCESS_MESSAGE = "Заказ принят. С вами свяжутся для подтверждения.".freeze
 
       def create
@@ -27,7 +26,7 @@ module Api
 
         render json: {
           order_id:     order.id,
-          total_amount: order.total_amount,
+          total_amount: order.total_amount.to_f,
           message:      SUCCESS_MESSAGE
         }, status: :created
       rescue ActiveRecord::RecordInvalid => e
@@ -42,7 +41,6 @@ module Api
 
       def build_order(basket_items)
         order = current_account.orders.new(order_form_params)
-        order.address = order.address.presence || DEFAULT_ADDRESS
 
         basket_items.each do |basket_item|
           order.order_items.build(
@@ -53,12 +51,12 @@ module Api
           )
         end
 
-        order.total_amount = order.order_items.sum { |i| i.cost.to_i * i.quantity.to_i }
+        order.total_amount = order.order_items.sum { |i| i.cost * i.quantity }
         order
       end
 
       def order_form_params
-        params.permit(:name, :phone, :email, :comment, :address)
+        params.permit(:name, :phone, :email, :comment)
       end
     end
   end

@@ -13,11 +13,32 @@ module Api
         )
       end
 
-      def destroy
+      def destroy_all
         deleted_count = Account.count
         Account.destroy_all
 
         render json: { deleted_count: deleted_count }
+      end
+
+      def update_role
+        account = Account.find(params[:user_id])
+
+        unless Account.roles.key?(role_param)
+          return render_error(
+            error:   "validation_error",
+            message: "Недопустимая роль пользователя",
+            status:  :bad_request
+          )
+        end
+
+        account.update!(role: role_param)
+        render json: AccountSerializer.as_json(account)
+      end
+
+      private
+
+      def role_param
+        params[:role].to_s
       end
     end
   end

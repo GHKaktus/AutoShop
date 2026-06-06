@@ -12,7 +12,7 @@ module Api
           name: "Фильтр #{idx}",
           cost: 100 + idx,
           sale_cost: -1,
-          stock: true,
+          stock: 10,
           description: "Описание #{idx}"
         )
       end
@@ -20,9 +20,9 @@ module Api
       Product.create!(
         category: @other_category,
         name: "Масло синтетическое",
-        cost: 999,
-        sale_cost: 899,
-        stock: true
+        cost: 999.50,
+        sale_cost: 899.99,
+        stock: 5
       )
     end
 
@@ -60,12 +60,23 @@ module Api
       body = response.parsed_body
       assert_equal product.id, body["id"]
       assert_equal product.name, body["name"]
-      assert_equal product.cost, body["cost"]
+      assert_equal product.cost.to_f, body["cost"]
+      assert_kind_of Integer, body["stock"]
     end
 
     test "GET /products/:id returns 404 for unknown product" do
       get product_path(-1), as: :json
       assert_response :not_found
+    end
+
+    test "GET /categories returns all categories" do
+      get categories_path, as: :json
+
+      assert_response :success
+      body = response.parsed_body
+      assert_kind_of Array, body
+      assert_equal 2, body.size
+      assert(body.all? { |c| c.key?("id") && c.key?("name") && c.key?("description") })
     end
 
     test "GET /search returns results by query" do

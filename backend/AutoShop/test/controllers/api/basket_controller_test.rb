@@ -5,8 +5,8 @@ module Api
     setup do
       @account  = Account.create!(email: "buyer@example.com", password: "Sup3rSecret!")
       @category = Category.create!(name: "Тест", slug: "test", position: 1)
-      @product  = Product.create!(category: @category, name: "Фильтр", cost: 500, stock: true)
-      @other    = Product.create!(category: @category, name: "Свеча",  cost: 200, stock: true)
+      @product  = Product.create!(category: @category, name: "Фильтр", cost: 500, stock: 10)
+      @other    = Product.create!(category: @category, name: "Свеча",  cost: 200, stock: 10)
       @token    = JwtService.encode(account: @account)[:token]
       @headers  = { "Authorization" => "Bearer #{@token}" }
     end

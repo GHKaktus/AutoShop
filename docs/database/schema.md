@@ -1,6 +1,8 @@
 # Схема БД AutoShop
 
-Документ описывает сущности БД для версии API **1.0.0** (см. [`docs/api/openapi.yaml`](../api/openapi.yaml)). Решает issue [#7](https://github.com/GHKaktus/AutoShop/issues/7).
+Документ описывает сущности БД для версии API **1.1.0** (см. [`docs/api/openapi.yaml`](../api/openapi.yaml)). Решает issue [#7](https://github.com/GHKaktus/AutoShop/issues/7).
+
+> **Изменения для API 1.1.0:** `products.cost`/`products.sale_cost` и `orders.total_amount`, `order_items.cost` переведены в `decimal(12,2)` (раньше `integer`); `products.stock` — `integer` (количество единиц) вместо `boolean`; в `categories` добавлено поле `description`; из `orders` удалено поле `address`.
 
 СУБД — **PostgreSQL** (порт 5432, конфиг в `backend/AutoShop/config/database.yml`). Все таблицы используют автоинкрементный `bigserial id` и стандартные Rails `created_at`/`updated_at`.
 
@@ -23,7 +25,7 @@
 |   baskets    |                  | orders  |
 +--------------+                  +---------+
 | account_id   |                  | account_id
-+--------------+                  | name/phone/email/comment/address
++--------------+                  | name/phone/email/comment
        | 1                        | status/total_amount
        |                          +---------+
        v *                              | 1
@@ -49,7 +51,7 @@
 +---------------+
 |  categories   |
 +---------------+
-| name/slug/image/position
+| name/slug/description/image/position
 +---------------+
 
 
@@ -85,10 +87,13 @@
 |------|-----|-------------|----------|
 | `id` | bigserial | PK | Идентификатор |
 | `name` | string | NOT NULL | Отображаемое имя (Аккумуляторы, …) |
-| `slug` | string | NOT NULL, UNIQUE | URL-идентификатор (`avtomasla`, …) |
+| `slug` | string | NOT NULL, UNIQUE | URL-идентификатор (`avtomasla`, …), генерируется из `name` (транслитерация) |
+| `description` | text | NULL | Описание категории (API 1.1.0) |
 | `image` | string | NULL | Относительный путь к иконке |
 | `position` | integer | NOT NULL, default `0` | Порядок отображения |
 | `created_at`, `updated_at` | timestamp | NOT NULL | |
+
+> В схеме OpenAPI `Category` есть только `id`, `name`, `description`; `slug`/`image`/`position` — внутренние поля каталога (slug генерируется автоматически).
 
 ### `products`
 Товар. Соответствует схеме `Product` в OpenAPI. Добавлено поле `category_id` для разбиения каталога.
@@ -97,11 +102,11 @@
 |------|-----|-------------|----------|
 | `id` | bigserial | PK | |
 | `name` | string | NOT NULL | Название |
-| `cost` | integer | NOT NULL ≥ 0 | Цена в рублях |
-| `sale_cost` | integer | NOT NULL, default `-1` | Скидочная цена. `-1` ⇒ скидки нет |
+| `cost` | decimal(12,2) | NOT NULL ≥ 0 | Цена в рублях (с копейками) |
+| `sale_cost` | decimal(12,2) | NOT NULL, default `-1` | Скидочная цена. `-1` ⇒ скидки нет |
 | `picture` | string | NULL | Относительный путь к картинке |
 | `description` | text | NULL | Описание |
-| `stock` | boolean | NOT NULL, default `true` | Есть ли на складе |
+| `stock` | integer | NOT NULL, default `0`, CHECK `≥ 0` | Количество единиц на складе |
 | `category_id` | bigint | NOT NULL, FK → `categories.id` | |
 | `created_at`, `updated_at` | timestamp | NOT NULL | |
 
@@ -140,9 +145,8 @@
 | `phone` | string | NOT NULL, regex `^\+?\d{10,15}$` | Телефон |
 | `email` | string | NOT NULL, формат email | Email |
 | `comment` | text | NULL, до 500 символов | Комментарий |
-| `address` | string | NOT NULL, до 300 символов | Адрес доставки |
 | `status` | integer | NOT NULL, default `0` | `pending/processing/shipped/delivered/cancelled` |
-| `total_amount` | integer | NOT NULL ≥ 0 | Итоговая сумма в рублях (снапшот) |
+| `total_amount` | decimal(12,2) | NOT NULL ≥ 0 | Итоговая сумма в рублях (снапшот) |
 | `created_at`, `updated_at` | timestamp | NOT NULL | |
 
 **Индексы:** `account_id`, `status`, `created_at`.
@@ -157,7 +161,7 @@
 | `product_id` | bigint | NULL, FK → `products.id` | На случай удаления товара |
 | `name` | string | NOT NULL | Снапшот имени |
 | `quantity` | integer | NOT NULL, CHECK `> 0` | |
-| `cost` | integer | NOT NULL, CHECK `≥ 0` | Снапшот цены за единицу |
+| `cost` | decimal(12,2) | NOT NULL, CHECK `≥ 0` | Снапшот цены за единицу |
 | `created_at`, `updated_at` | timestamp | NOT NULL | |
 
 ### `jwt_denylist`
@@ -206,6 +210,10 @@
 6. `20260601200006_create_orders.rb`
 7. `20260601200007_create_order_items.rb`
 8. `20260601200008_create_jwt_denylist.rb`
+9. `20260606120001_add_description_to_categories.rb` — поле `description` (API 1.1.0)
+10. `20260606120002_change_products_money_and_stock.rb` — `cost`/`sale_cost` → decimal, `stock` → integer
+11. `20260606120003_change_orders_total_amount_and_drop_address.rb` — `total_amount` → decimal, удалён `address`
+12. `20260606120004_change_order_items_cost_to_decimal.rb` — `cost` → decimal
 
 ---
 
@@ -223,7 +231,7 @@ rails db:seed       # создаст 4 категории и admin@autoshop.loca
 
 ## Замечания и расширения на будущее
 
-* **`Account#role`** пока выдаётся хардкодом (по плану версии 1.0.0). В следующей итерации (issue [#12](https://github.com/GHKaktus/AutoShop/issues/12)) нужно будет добавить механизм назначения роли.
+* **`Account#role`** назначается через `PUT /admin/users/:userId/role` (API 1.1.0). Начальный admin создаётся seed-ом.
 * **`Product.picture`** хранит относительный путь (`/images/...`) — соответствует решению из issue [#8](https://github.com/GHKaktus/AutoShop/issues/8). При переходе на S3 заменим на Active Storage attachment (`image_processing` уже в Gemfile).
 * **Активные сессии**: вместо денилиста можно реализовать allowlist по `jti`, если потребуется управление списком активных устройств.
-* **Цены хранятся в `integer`** (рубли, как в OpenAPI). Если потребуются копейки — миграция `change_column :products, :cost, :integer` + домен пересчёта.
+* **Цены хранятся в `decimal(12,2)`** (рубли с копейками, API 1.1.0). В JSON сериализуются как `number`/float.

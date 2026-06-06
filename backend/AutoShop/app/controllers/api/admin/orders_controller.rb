@@ -13,11 +13,44 @@ module Api
         )
       end
 
+      def show
+        order = Order.includes(:order_items).find(params[:id])
+        render json: OrderSerializer.as_json(order)
+      end
+
+      def update
+        order = Order.find(params[:id])
+
+        unless Order.statuses.key?(order_params[:status].to_s)
+          return render_error(
+            error:   "validation_error",
+            message: "Недопустимый статус заказа",
+            status:  :bad_request
+          )
+        end
+
+        order.update!(status: order_params[:status])
+        render json: OrderSerializer.as_json(order)
+      end
+
       def destroy
+        order = Order.find(params[:id])
+        order.destroy
+
+        head :ok
+      end
+
+      def destroy_all
         deleted_count = Order.count
         Order.destroy_all
 
         render json: { deleted_count: deleted_count }
+      end
+
+      private
+
+      def order_params
+        params.permit(:status)
       end
     end
   end

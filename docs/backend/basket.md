@@ -12,7 +12,7 @@
 ```json
 {
   "items": [
-    { "product": { "id": 1, "name": "Фильтр", "cost": 500, "sale_cost": -1, "picture": null, "description": null, "stock": true }, "quantity": 2 }
+    { "product": { "id": 1, "name": "Фильтр", "cost": 500.0, "sale_cost": -1.0, "picture": null, "description": null, "stock": 10 }, "quantity": 2 }
   ]
 }
 ```
@@ -51,7 +51,7 @@
 
 Ответ `201 Created`:
 ```json
-{ "order_id": 12345, "total_amount": 2500, "message": "Заказ принят. С вами свяжутся для подтверждения." }
+{ "order_id": 12345, "total_amount": 2500.0, "message": "Заказ принят. С вами свяжутся для подтверждения." }
 ```
 
 Ошибки:
@@ -60,8 +60,8 @@
 
 ## Замечания
 
-- Поле `address` обязательно в БД (`Order.address: NOT NULL`), но в `OrderForm` OpenAPI его нет. В контроллере используется значение по умолчанию `"Не указан (самовывоз)"`. При необходимости фронт может прислать `address` — он будет сохранён.
-- `total_amount` считается на сервере как сумма `cost * quantity` со снапшотом цен (учитывается `sale_cost`).
+- API 1.1.0: поле `address` удалено из схемы `Order` и из БД (на фронте нет ввода адреса). `OrderForm` принимает только `name`, `phone`, `email`, `comment`.
+- `total_amount` считается на сервере как сумма `cost * quantity` со снапшотом цен (учитывается `sale_cost`); тип — `number` (float).
 - Корзина автоматически создаётся при регистрации пользователя (`Account.after_create :ensure_basket`) и при первом обращении к Basket API.
 
 ## Тесты
