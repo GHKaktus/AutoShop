@@ -23,6 +23,12 @@ components:
         - password
         - role
       properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+          example: 12345
+          description: Уникальный идентификатор аккаунта в системе
         email:
           type: string
           format: email

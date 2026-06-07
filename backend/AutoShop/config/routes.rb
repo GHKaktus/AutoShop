@@ -14,6 +14,7 @@ Rails.application.routes.draw do
     get "catalog/:id", to: "catalog#index", as: :catalog
     get "products/:id", to: "products#show", as: :product
     get "search", to: "search#index", as: :search
+    get "categories", to: "categories#index", as: :categories
 
     scope :auth, as: :auth do
       post "sign-up", to: "auth#sign_up", as: :sign_up
@@ -29,12 +30,26 @@ Rails.application.routes.draw do
     end
 
     scope :admin, as: :admin, module: :admin do
-      get    "orders",   to: "orders#index"
-      delete "orders",   to: "orders#destroy"
-      get    "users",    to: "users#index"
-      delete "users",    to: "users#destroy"
-      get    "products", to: "products#index"
-      post   "products", to: "products#create"
+      get    "orders",     to: "orders#index",       as: :orders
+      delete "orders",     to: "orders#destroy_all"
+      get    "orders/:id", to: "orders#show",        as: :order
+      put    "orders/:id", to: "orders#update"
+      delete "orders/:id", to: "orders#destroy"
+
+      get    "users",                to: "users#index",       as: :users
+      delete "users",                to: "users#destroy_all"
+      put    "users/:user_id/role",  to: "users#update_role", as: :user_role
+
+      get    "products",     to: "products#index",  as: :products
+      post   "products",     to: "products#create"
+      get    "products/:id", to: "products#show",   as: :product
+      put    "products/:id", to: "products#update"
+      delete "products/:id", to: "products#destroy"
+
+      post   "categories",     to: "categories#create", as: :categories
+      get    "categories/:id", to: "categories#show",   as: :category
+      put    "categories/:id", to: "categories#update"
+      delete "categories/:id", to: "categories#destroy"
     end
   end
 

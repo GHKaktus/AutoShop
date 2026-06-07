@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_01_200008) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_120004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -45,6 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_200008) do
 
   create_table "categories", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.text "description"
     t.string "image"
     t.string "name", null: false
     t.integer "position", default: 0, null: false
@@ -64,7 +65,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_200008) do
   end
 
   create_table "order_items", force: :cascade do |t|
-    t.integer "cost", null: false
+    t.decimal "cost", precision: 12, scale: 2, null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.bigint "order_id", null: false
@@ -73,40 +74,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_200008) do
     t.datetime "updated_at", null: false
     t.index ["order_id"], name: "index_order_items_on_order_id"
     t.index ["product_id"], name: "index_order_items_on_product_id"
-    t.check_constraint "cost >= 0", name: "order_items_cost_non_negative"
+    t.check_constraint "cost >= 0::numeric", name: "order_items_cost_non_negative"
     t.check_constraint "quantity > 0", name: "order_items_quantity_positive"
   end
 
   create_table "orders", force: :cascade do |t|
     t.bigint "account_id", null: false
-    t.string "address", null: false
     t.text "comment"
     t.datetime "created_at", null: false
     t.string "email", null: false
     t.string "name", null: false
     t.string "phone", null: false
     t.integer "status", default: 0, null: false
-    t.integer "total_amount", default: 0, null: false
+    t.decimal "total_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_orders_on_account_id"
     t.index ["created_at"], name: "index_orders_on_created_at"
     t.index ["status"], name: "index_orders_on_status"
-    t.check_constraint "total_amount >= 0", name: "orders_total_amount_non_negative"
+    t.check_constraint "total_amount >= 0::numeric", name: "orders_total_amount_non_negative"
   end
 
   create_table "products", force: :cascade do |t|
     t.bigint "category_id", null: false
-    t.integer "cost", null: false
+    t.decimal "cost", precision: 12, scale: 2, null: false
     t.datetime "created_at", null: false
     t.text "description"
     t.string "name", null: false
     t.string "picture"
-    t.integer "sale_cost", default: -1, null: false
-    t.boolean "stock", default: true, null: false
+    t.decimal "sale_cost", precision: 12, scale: 2, default: "-1.0", null: false
+    t.integer "stock", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["name"], name: "index_products_on_name"
     t.index ["stock"], name: "index_products_on_stock"
+    t.check_constraint "stock >= 0", name: "products_stock_non_negative"
   end
 
   add_foreign_key "basket_items", "baskets"

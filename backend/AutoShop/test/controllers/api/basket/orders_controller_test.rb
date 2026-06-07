@@ -6,8 +6,8 @@ module Api
       setup do
         @account  = Account.create!(email: "orderer@example.com", password: "Sup3rSecret!")
         @category = Category.create!(name: "Тест", slug: "test", position: 1)
-        @product1 = Product.create!(category: @category, name: "Фильтр", cost: 500, sale_cost: 450, stock: true)
-        @product2 = Product.create!(category: @category, name: "Свеча",  cost: 200, stock: true)
+        @product1 = Product.create!(category: @category, name: "Фильтр", cost: 500, sale_cost: 450, stock: 10)
+        @product2 = Product.create!(category: @category, name: "Свеча",  cost: 200, stock: 10)
         @token    = JwtService.encode(account: @account)[:token]
         @headers  = { "Authorization" => "Bearer #{@token}" }
 
@@ -42,6 +42,27 @@ module Api
         assert_equal "Срочно", order.comment
 
         assert_equal 0, @account.basket.reload.basket_items.count
+
+        assert_equal 8, @product1.reload.stock
+        assert_equal 7, @product2.reload.stock
+      end
+
+      test "POST /basket/order returns 400 when stock is insufficient at checkout" do
+        @product1.update!(stock: 1)
+
+        post basket_order_path,
+             params:  { name: "Иван", phone: "+79161234567", email: "ivan@example.com" },
+             headers: @headers,
+             as:      :json
+
+        assert_response :bad_request
+        assert_equal "validation_error", response.parsed_body["error"]
+        assert_match(/Недостаточно товара/, response.parsed_body["message"])
+
+        assert_equal 0, Order.count
+        assert_equal 2, @account.basket.reload.basket_items.count
+        assert_equal 1, @product1.reload.stock
+        assert_equal 10, @product2.reload.stock
       end
 
       test "POST /basket/order returns 400 when basket is empty" do

@@ -13,10 +13,9 @@ class Order < ApplicationRecord
   validates :name,    presence: true, length: { in: 2..100 }
   validates :phone,   presence: true, format: { with: PHONE_REGEXP }
   validates :email,   presence: true, format: { with: EMAIL_REGEXP }
-  validates :address, presence: true, length: { maximum: 300 }
   validates :comment, length: { maximum: 500 }, allow_blank: true
   validates :total_amount,
-            numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+            numericality: { greater_than_or_equal_to: 0 }
   validates :order_items, length: { minimum: 1, message: "must contain at least one item" }
 
   scope :recent, -> { order(created_at: :desc) }

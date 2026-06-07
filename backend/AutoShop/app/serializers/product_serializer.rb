@@ -3,8 +3,8 @@ class ProductSerializer
     {
       id: product.id,
       name: product.name,
-      cost: product.cost,
-      sale_cost: product.sale_cost,
+      cost: product.cost.to_f,
+      sale_cost: product.sale_cost.to_f,
       picture: product.picture,
       description: product.description,
       stock: product.stock

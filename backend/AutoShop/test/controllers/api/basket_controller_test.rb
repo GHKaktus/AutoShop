@@ -5,8 +5,9 @@ module Api
     setup do
       @account  = Account.create!(email: "buyer@example.com", password: "Sup3rSecret!")
       @category = Category.create!(name: "Тест", slug: "test", position: 1)
-      @product  = Product.create!(category: @category, name: "Фильтр", cost: 500, stock: true)
-      @other    = Product.create!(category: @category, name: "Свеча",  cost: 200, stock: true)
+      @product  = Product.create!(category: @category, name: "Фильтр", cost: 500, stock: 10)
+      @other    = Product.create!(category: @category, name: "Свеча",  cost: 200, stock: 10)
+      @scarce   = Product.create!(category: @category, name: "Редкий", cost: 300, stock: 2)
       @token    = JwtService.encode(account: @account)[:token]
       @headers  = { "Authorization" => "Bearer #{@token}" }
     end
@@ -50,6 +51,27 @@ module Api
     test "POST /basket returns 404 when product missing" do
       post basket_create_path, params: { product_id: -1, quantity: 1 }, headers: @headers, as: :json
       assert_response :not_found
+    end
+
+    test "POST /basket rejects quantity greater than stock" do
+      post basket_create_path, params: { product_id: @scarce.id, quantity: 3 }, headers: @headers, as: :json
+
+      assert_response :bad_request
+      assert_equal "validation_error", response.parsed_body["error"]
+
+      get basket_show_path, headers: @headers
+      assert_empty response.parsed_body["items"]
+    end
+
+    test "POST /basket rejects when sum of additions exceeds stock" do
+      post basket_create_path, params: { product_id: @scarce.id, quantity: 2 }, headers: @headers, as: :json
+      assert_response :ok
+
+      post basket_create_path, params: { product_id: @scarce.id, quantity: 1 }, headers: @headers, as: :json
+      assert_response :bad_request
+
+      get basket_show_path, headers: @headers
+      assert_equal 2, response.parsed_body["items"][0]["quantity"]
     end
 
     test "DELETE /basket/:id removes product line" do

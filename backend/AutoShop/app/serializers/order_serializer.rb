@@ -8,11 +8,10 @@ class OrderSerializer
       email:        order.email,
       comment:      order.comment,
       status:       order.status,
-      total_amount: order.total_amount,
+      total_amount: order.total_amount.to_f,
       items:        order.order_items.map { |item| order_item_as_json(item) },
       created_at:   order.created_at.iso8601,
-      updated_at:   order.updated_at.iso8601,
-      address:      order.address
+      updated_at:   order.updated_at.iso8601
     }
   end
 

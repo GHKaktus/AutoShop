@@ -1,6 +1,7 @@
 class AccountSerializer
   def self.as_json(account)
     {
+      id:    account.id,
       email: account.email,
       role:  account.role
     }
