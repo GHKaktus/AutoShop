@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import store from './store/store.ts'
 import './index.css'
 import App from './App.tsx'
-
+// Корневой файл
 createRoot(document.getElementById('root')!).render(
 
     <StrictMode>
