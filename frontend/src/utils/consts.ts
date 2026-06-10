@@ -9,3 +9,5 @@ export const PRODUCTS_ROUTE: string = '/products';
 export const BASKET_ROUTE: string = '/basket'; // корзина
 export const BASKET_OFFER_ROUTE: string = '/basket/offer'; // оформление заказа
 export const CONTACTS_ROUTE: string = '/contacts'; // страница контактов
+export const LOGIN_ROUTE: string = '/login'; // авторизация
+export const REGISTRATION_ROUTE: string = '/registration'; // регистрация

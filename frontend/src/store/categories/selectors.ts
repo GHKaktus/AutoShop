@@ -8,6 +8,8 @@ export const getCategories = createSelector(
     (items) => Object.values(items)
 );
 export const getCategoryById = (id: number) => (state: RootState): Category => state.categories.items[id];
+export const getCategoryBySlug = (slug: string) => (state: RootState): Category | null =>
+    Object.values(state.categories.items).find((category) => category.slug === slug) ?? null;
 export const getSelectedCategory =  (state: RootState): Category | null => {
     if (!state.categories.selectedCategoryId) return null;
     return state.categories.items[state.categories.selectedCategoryId];
