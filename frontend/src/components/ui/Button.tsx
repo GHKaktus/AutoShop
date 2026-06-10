@@ -1,20 +1,26 @@
 import { Link } from "react-router-dom";
+import React from 'react';
 
 interface ButtonProps {
-    type: string;
+    type: 'submit' | 'button' | 'reset' | 'link';
     linkTo: string;
     children: any;
-    paddingInline: string;
-    paddingBlock: string;
+    paddingInline?: string;
+    paddingBlock?: string;
+    textClasses?: string;
     addClasses?: string;
+    borderWidth?: string;
+    isHover?: boolean | null | undefined; // true - custom hover effect described in addClasses, false/null/undefinded - default value
+    title?: string;
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-const Button = ({ type, linkTo, children, paddingInline, paddingBlock, addClasses }: ButtonProps) => {
+const Button = ({ type, linkTo, children, paddingInline, paddingBlock, textClasses, addClasses, borderWidth, isHover, title, onClick }: ButtonProps) => {
 
     const classStyles = `
-        text-[0.875rem] sm:text-[1rem] font-bold leading-normal tracking-normal
-        uppercase ${paddingInline} ${paddingBlock} ${addClasses ? `${addClasses}` : ''}
-        border-4 border-red duration-400 hover:bg-red hover:rounded-md
+        ${textClasses ? `${textClasses}` : 'text-[0.875rem] sm:text-[1rem]'} font-bold leading-normal tracking-normal
+        uppercase ${paddingInline} ${paddingBlock} ${addClasses && `${addClasses}`} cursor-pointer
+        ${borderWidth ? `${borderWidth}` : 'border-4'} border-red duration-200 ${!isHover && 'hover:bg-red hover:rounded-md'}
     `
 
     return (
@@ -22,11 +28,11 @@ const Button = ({ type, linkTo, children, paddingInline, paddingBlock, addClasse
             {
                 type === "link"
                     ? 
-                    <Link to={linkTo} className={classStyles}>
+                    <Link to={linkTo} className={classStyles} title={title}>
                         {children}
                     </Link>
                     : 
-                    <button className={classStyles} type="button">
+                    <button type={type} className={classStyles} title={title} onClick={onClick}>
                         {children}
                     </button>
             }

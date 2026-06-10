@@ -1,10 +1,11 @@
 import type { AuthRoutes, PublicRoutes } from "./types";
-import { ABOUT_ROUTE, BASE_ROUTE, BASKET_OFFER_ROUTE, BASKET_ROUTE, CATALOG_ROUTE, CONTACTS_ROUTE } from "@/utils/consts";
+import { ABOUT_ROUTE, BASE_ROUTE, BASKET_OFFER_ROUTE, BASKET_ROUTE, CATALOG_SLUG_ROUTE, CATALOG_ROUTE, CONTACTS_ROUTE } from "@/utils/consts";
 import Home from '@/pages/Home/index';
-import Catalog from "@/pages/Catalog/Catalog";
-import Basket from "@pages/Basket";
-import Contacts from "@pages/Contacts";
-import About from "@pages/About";
+import CatalogCategories from "@/pages/Catalog/CatalogCategories/CatalogCategories";
+import CatalogProducts from "@/pages/Catalog/CatalogProducts/CatalogProducts";
+import Basket from "@/pages/Basket/Basket";
+import Contacts from "@/pages/Contacts/Contacts";
+import About from "@/pages/About/About";
 
 export const authRoutes: AuthRoutes = [
     {
@@ -28,7 +29,11 @@ export const publicRoutes: PublicRoutes = [
     },
     {
         path: CATALOG_ROUTE,
-        Component: Catalog
+        Component: CatalogCategories
+    },
+    {
+        path: CATALOG_SLUG_ROUTE,
+        Component: CatalogProducts
     },
     {
         path: CONTACTS_ROUTE,

@@ -4,7 +4,7 @@ import { CATALOG_ROUTE } from "@/utils/consts";
 import type { ComponentProps } from "./types";
 import { useCatalogLogic } from "./hooks";
 
-const Catalog = ({ information }: ComponentProps) => {
+const CatalogCategories = ({ information }: ComponentProps) => {
 
     const { categories, currentCard, handleClick } = useCatalogLogic();
 
@@ -54,7 +54,7 @@ const Catalog = ({ information }: ComponentProps) => {
                                         <h3 className="text-[1.125rem] sm:text-[1.5rem] font-medium leading-normal tracking-normal uppercase mb-10 md:mb-14 duration-400">
                                             {element.name}
                                         </h3>
-                                        <Button type="link" linkTo={CATALOG_ROUTE} paddingInline="px-3 sm:px-5" paddingBlock="py-3 sm:py-4.5" addClasses="">
+                                        <Button type="link" linkTo={CATALOG_ROUTE+`/${element.slug}`} paddingInline="px-3 sm:px-5" paddingBlock="py-3 sm:py-4.5" addClasses="">
                                             Заказать онлайн
                                         </Button>
                                     </div>
@@ -76,4 +76,4 @@ const Catalog = ({ information }: ComponentProps) => {
     );
 };
 
-export default Catalog;
+export default CatalogCategories;

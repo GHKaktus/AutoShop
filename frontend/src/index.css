@@ -59,6 +59,8 @@
 @theme {
     --font-family-base: 'Roboto', sans-serif;
     --color-red: #C53720;
+    --color-green: #3CC051;
+    --color-grey: #A5A5A5;
     --color-black1: #0E0E0E;
     --color-black2: #1D1D1D;
 
@@ -69,12 +71,41 @@
     --breakpoint-2xl: 1920px;
 }
 
+@layer base {
+    html {
+        overflow-x: hidden;
+    }
+
+    body {
+        position: relative;
+        overflow-x: hidden;
+        line-height: 1.5;
+    }
+}
+
 @layer utilities {
     .container {
-        max-width: 1200px;
+        max-width: calc(1200px + 40px);
         width: 100%;
         padding-inline: 20px;
         margin-inline: auto;
+    }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        border: 0;
+        padding: 0;
+        white-space: nowrap;
+        clip-path: inset(100%);
+        clip: rect(0 0 0 0);
+        overflow: hidden;
+    }
+
+    .filter {
+        top: var(--scroll-top);
     }
 
     .container.px-0 {
@@ -110,19 +141,19 @@
     }
 
     .bg-home-welcome--1 {
-        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+        background-image: url('@assets/images/home-component/welcome-section/first.jpg');
     }
 
     .bg-home-welcome--2 {
-        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+        background-image: url('@assets/images/home-component/welcome-section/better-uslugi.jpg');
     }
 
     .bg-home-welcome--3 {
-        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+        background-image: url('@assets/images/home-component/welcome-section/car-3.jpg');
     }
 
     .bg-home-welcome--4 {
-        background-image: url('@assets/images/home-component/welcome-section/welcome-bg-1.png');
+        background-image: url('@assets/images/home-component/welcome-section/supra.jpg');
     }
 
     .bg-home-products--phara {
@@ -151,5 +182,20 @@
 
     .paganation-is-active {
         background-color: var(--color-red);
+    }
+}
+
+@media(max-width: 480px) {
+
+    .bg-home-welcome--2 {
+        background-image: url('@assets/images/home-component/welcome-section/better-uslugi.jpg');
+    }
+
+    .bg-home-welcome--3 {
+        background-image: url('@assets/images/home-component/welcome-section/other-car.jpg');
+    }
+
+    .bg-home-welcome--4 {
+        background-image: url('@assets/images/home-component/welcome-section/supra-mobile.jpg');
     }
 }

@@ -1,6 +1,6 @@
 export const BASE_ROUTE: string = '/'; // главная страница
 export const CATALOG_ROUTE: string = '/catalog'; // категории товаров
-export const CATALOG_ID_ROUTE: string = '/catalog/:id'; // пока что не реализован
+export const CATALOG_SLUG_ROUTE: string = '/catalog/:slug'; // пока что не реализован
 export const ABOUT_ROUTE: string = '/about'; // сюда включено все(кроме новостей и отзывов) о компании: О компании, Лицензии, Партнеры и FAQ
 export const ABOUT_NEWS_ROUTE: string = '/about/news'; // отдельно ТОЛЬКО новости
 export const ABOUT_REVIEWS_ROUTE: string = '/about/reviews'; // отдельно ТОЛЬКО отзывы

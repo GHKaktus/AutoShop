@@ -21,26 +21,24 @@ const BreadCrumbs = () => {
                         breadCrumbsList
                             ?
                             breadCrumbsList.map((el, index) => (
-                                <>
-                                    <li key={el.id} className="">
-                                        {
-                                            el.isLink
-                                                ?
-                                                <Link to={el.path} className="">
-                                                    {el.title}
-                                                </Link>
-                                                :
-                                                <div className="">
-                                                    {el.title}
-                                                </div>
-                                        }
-                                    </li>
+                                <li key={el.id} className="flex items-center gap-x-4">
                                     {
-                                        index !== breadCrumbsList.length - 1 
-                                        ? <ArrowRightIcon className="text-red" aria-hidden='true' /> 
-                                        : ''
+                                        el.isLink
+                                            ?
+                                            <Link to={el.path} className="">
+                                                {el.title}
+                                            </Link>
+                                            :
+                                            <div className="">
+                                                {el.title}
+                                            </div>
                                     }
-                                </>
+                                    {
+                                        index !== breadCrumbsList.length - 1
+                                            ? <ArrowRightIcon className="text-red" aria-hidden='true' />
+                                            : ''
+                                    }
+                                </li>
                             ))
                             :
                             'Пусто!'
