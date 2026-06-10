@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_120004) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -94,6 +94,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_120004) do
     t.check_constraint "total_amount >= 0::numeric", name: "orders_total_amount_non_negative"
   end
 
+  create_table "password_reset_codes", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "code", null: false
+    t.datetime "consumed_at"
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "code"], name: "index_password_reset_codes_on_account_id_and_code"
+    t.index ["account_id"], name: "index_password_reset_codes_on_account_id"
+    t.index ["expires_at"], name: "index_password_reset_codes_on_expires_at"
+  end
+
   create_table "products", force: :cascade do |t|
     t.bigint "category_id", null: false
     t.decimal "cost", precision: 12, scale: 2, null: false
@@ -116,5 +128,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_120004) do
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "accounts"
+  add_foreign_key "password_reset_codes", "accounts"
   add_foreign_key "products", "categories"
 end

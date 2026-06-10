@@ -1,0 +1,9 @@
+<h1>Восстановление пароля AutoShop</h1>
+
+<p>Вы запросили восстановление пароля для аккаунта <strong><%= @account.email %></strong>.</p>
+
+<p>Ваш код восстановления:</p>
+
+<p style="font-size: 24px; font-weight: bold; letter-spacing: 4px;"><%= @code %></p>
+
+<p>Код действителен <%= PasswordResetCode::TTL.inspect %>. Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.</p>

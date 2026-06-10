@@ -90,5 +90,54 @@ module Api
       delete basket_destroy_path(@product.id), headers: @headers
       assert_response :not_found
     end
+
+    test "PATCH /basket/:id updates quantity" do
+      post basket_create_path, params: { product_id: @product.id, quantity: 1 }, headers: @headers, as: :json
+
+      patch basket_update_path(@product.id), params: { quantity: 4 }, headers: @headers, as: :json
+      assert_response :ok
+
+      get basket_show_path, headers: @headers
+      assert_equal 4, response.parsed_body["items"][0]["quantity"]
+    end
+
+    test "PATCH /basket/:id with quantity 0 removes item" do
+      post basket_create_path, params: { product_id: @product.id, quantity: 2 }, headers: @headers, as: :json
+
+      patch basket_update_path(@product.id), params: { quantity: 0 }, headers: @headers, as: :json
+      assert_response :ok
+
+      get basket_show_path, headers: @headers
+      assert_empty response.parsed_body["items"]
+    end
+
+    test "PATCH /basket/:id rejects quantity above stock" do
+      post basket_create_path, params: { product_id: @scarce.id, quantity: 1 }, headers: @headers, as: :json
+
+      patch basket_update_path(@scarce.id), params: { quantity: 5 }, headers: @headers, as: :json
+      assert_response :bad_request
+      assert_equal "validation_error", response.parsed_body["error"]
+
+      get basket_show_path, headers: @headers
+      assert_equal 1, response.parsed_body["items"][0]["quantity"]
+    end
+
+    test "PATCH /basket/:id returns 400 on invalid quantity" do
+      post basket_create_path, params: { product_id: @product.id, quantity: 1 }, headers: @headers, as: :json
+
+      patch basket_update_path(@product.id), params: { quantity: -1 }, headers: @headers, as: :json
+      assert_response :bad_request
+      assert_equal "bad_request", response.parsed_body["error"]
+    end
+
+    test "PATCH /basket/:id returns 404 if product not in basket" do
+      patch basket_update_path(@product.id), params: { quantity: 2 }, headers: @headers, as: :json
+      assert_response :not_found
+    end
+
+    test "PATCH /basket requires authentication" do
+      patch basket_update_path(@product.id), params: { quantity: 2 }, as: :json
+      assert_response :unauthorized
+    end
   end
 end
