@@ -3,7 +3,7 @@ import { authRoutes, publicRoutes } from '@/routes/routes';
 import { BASE_ROUTE } from '@/utils/consts';
 
 const AppRouter = () => {
-    const isAuth = false;
+    const isAuth = true;
 
     return (
         <Routes>

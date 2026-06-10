@@ -1,6 +1,9 @@
+export interface WelcomeInformation {
+    title: string;
+    buttonText: string;
+    image?: string;
+}
+
 export interface ComponentProps {
-    information: {
-        title: string;
-        buttonText: string;
-    }
+    information: WelcomeInformation;
 }

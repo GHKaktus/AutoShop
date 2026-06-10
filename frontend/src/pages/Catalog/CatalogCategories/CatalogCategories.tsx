@@ -1,16 +1,16 @@
-import CatalogProducts from "@/components/Catalog/Catalog";
+import Catalog from "@/components/CatalogCategories/CatalogCategories";
 import { catalogInformation, welcomeInformation } from "./datasets";
 import Welcome from "@/components/Welcome/Welcome";
 import BreadCrumbs from "@/components/BreadCrumbs/BreadCrumbs";
 
-const Catalog = () => {
+const CatalogCategories = () => {
     return (
         <>
             <Welcome information={welcomeInformation}/>
             <BreadCrumbs />
-            <CatalogProducts information={catalogInformation}/>
+            <Catalog information={catalogInformation}/>
         </>
     );
 };
 
-export default Catalog;
+export default CatalogCategories;

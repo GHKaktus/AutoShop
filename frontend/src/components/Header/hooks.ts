@@ -6,7 +6,7 @@ import { useState } from "react";
 
 export const useHeaderDatasets = () => {
     const categoriesObjects: Category[] = useAppSelector(getCategories);
-    const categoriesNames: Subtitle[] = categoriesObjects.map(element => ({ id: element.id, name: element.name }));
+    const categoriesNames: Subtitle[] = categoriesObjects.map(element => ({ id: element.id, name: element.name, slug: element.slug }));
     const menuNavigation: MenuNavigation = [
         {
             id: 1,
@@ -30,6 +30,7 @@ export const useHeaderDatasets = () => {
 
     const [currentOption, setCurrentOption] = useState<number>(0);
     const [hoverOption, setHoverOption] = useState<number>(0);
+    const [isDesktop, setIsDesktop] = useState<boolean>(true);
 
     function handleClick(event: React.MouseEvent<HTMLElement>, id: number) {
         if (currentOption === id) return;
@@ -50,6 +51,8 @@ export const useHeaderDatasets = () => {
         menuNavigation,
         currentOption,
         hoverOption,
+        isDesktop,
+        setIsDesktop,
         handleClick,
         handleMouseEnter,
         handleMouseLeave

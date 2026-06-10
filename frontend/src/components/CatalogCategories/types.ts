@@ -5,3 +5,9 @@ export interface ComponentProps {
         maxWidth: string;
     }
 }
+
+export interface CatalogCategoriesInformation {
+    title: string;
+    description: string;
+    maxWidth: string;
+}

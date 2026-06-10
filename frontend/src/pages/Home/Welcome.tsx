@@ -19,7 +19,7 @@ const Welcome = () => {
 
         intervalId.current = setInterval(() => {
             setCurrentIndex(prev => (prev === 4 ? 1 : prev + 1))
-        }, 5000);
+        }, 7000);
 
         window.addEventListener('mousedown', handleMouseDownWelcome);
         window.addEventListener('mousemove', handleMouseMoveWelcome);
@@ -35,11 +35,8 @@ const Welcome = () => {
 
     return (
         <>
-            <h1 className="visually-hidden">
-                PROAuto - интернет-магазин автотоваров: аккумуляторы, аксессуары, расходники и многое другое. Все города России.
-            </h1>
             <section className="relative select-none" data-welcome>
-                <ul className="w-full flex items-center">
+                <ul className="h-screen flex items-center">
                     {
                         welcomeSlides.map((element) => (
                             <li key={element.id}
@@ -52,11 +49,11 @@ const Welcome = () => {
                                     ${element.id === 2 ? 'bg-home-welcome--2' : ''}
                                     ${element.id === 3 ? 'bg-home-welcome--3' : ''}
                                     ${element.id === 4 ? 'bg-home-welcome--4' : ''}
-                                    text-white w-full flex items-center shrink-0 
+                                    text-white w-full h-full flex items-center shrink-0 
                                     bg-black bg-home-welcome duration-400
                                 `}
                             >
-                                <div className="container pt-60 pb-25 sm:pt-63.75 sm:pb-47.5 flex flex-col items-start justify-center gap-y-6 sm:gap-y-13">
+                                <div className="container h-full flex flex-col items-start justify-center gap-y-6 sm:gap-y-13">
                                     <h2 className="text-[1.5rem] sm:text-[2rem] md:text-[3rem] font-bold leading-normal tracking-normal uppercase max-w-82 sm:max-w-100 md:max-w-146.5 w-full">
                                         {element.title}
                                     </h2>
