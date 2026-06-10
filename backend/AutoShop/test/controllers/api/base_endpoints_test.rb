@@ -79,6 +79,58 @@ module Api
       assert(body.all? { |c| c.key?("id") && c.key?("name") && c.key?("description") })
     end
 
+    test "GET /catalog/:id filters by in_stock" do
+      cat = Category.create!(name: "Фильтр-кат", slug: "filter-cat", position: 5)
+      Product.create!(category: cat, name: "Есть",  cost: 100, stock: 5)
+      Product.create!(category: cat, name: "Нет",   cost: 200, stock: 0)
+
+      get catalog_path(cat.id), params: { in_stock: "in_stock" }, as: :json
+      assert_response :success
+      assert_equal 1, response.parsed_body["total_items"]
+      assert_equal "Есть", response.parsed_body["items"][0]["name"]
+
+      get catalog_path(cat.id), params: { in_stock: "out_of_stock" }, as: :json
+      assert_equal 1, response.parsed_body["total_items"]
+      assert_equal "Нет", response.parsed_body["items"][0]["name"]
+
+      get catalog_path(cat.id), params: { in_stock: "all" }, as: :json
+      assert_equal 2, response.parsed_body["total_items"]
+    end
+
+    test "GET /catalog/:id filters by price range using effective price" do
+      cat = Category.create!(name: "Цена-кат", slug: "price-cat", position: 6)
+      Product.create!(category: cat, name: "Дешёвый",  cost: 100, stock: 5)
+      Product.create!(category: cat, name: "Средний",  cost: 500, stock: 5)
+      Product.create!(category: cat, name: "Скидочный", cost: 1000, sale_cost: 300, stock: 5)
+
+      get catalog_path(cat.id), params: { price_min: 200, price_max: 600 }, as: :json
+      assert_response :success
+      names = response.parsed_body["items"].map { |p| p["name"] }
+      assert_equal %w[Средний Скидочный].sort, names.sort
+    end
+
+    test "GET /catalog/:id sorts by price asc and desc" do
+      cat = Category.create!(name: "Сорт-кат", slug: "sort-cat", position: 7)
+      Product.create!(category: cat, name: "A", cost: 300, stock: 5)
+      Product.create!(category: cat, name: "B", cost: 100, stock: 5)
+      Product.create!(category: cat, name: "C", cost: 200, stock: 5)
+
+      get catalog_path(cat.id), params: { sort_by: "price_asc" }, as: :json
+      assert_equal %w[B C A], response.parsed_body["items"].map { |p| p["name"] }
+
+      get catalog_path(cat.id), params: { sort_by: "price_desc" }, as: :json
+      assert_equal %w[A C B], response.parsed_body["items"].map { |p| p["name"] }
+    end
+
+    test "GET /catalog/:id sorts by status (in stock first)" do
+      cat = Category.create!(name: "Статус-кат", slug: "status-cat", position: 8)
+      Product.create!(category: cat, name: "Нет",  cost: 100, stock: 0)
+      Product.create!(category: cat, name: "Есть", cost: 200, stock: 3)
+
+      get catalog_path(cat.id), params: { sort_by: "status" }, as: :json
+      assert_equal "Есть", response.parsed_body["items"][0]["name"]
+    end
+
     test "GET /search returns results by query" do
       get search_path, params: { q: "масло" }, as: :json
 

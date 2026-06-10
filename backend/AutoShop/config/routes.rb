@@ -20,11 +20,14 @@ Rails.application.routes.draw do
       post "sign-up", to: "auth#sign_up", as: :sign_up
       post "sign-in", to: "auth#sign_in", as: :sign_in
       post "logout",  to: "auth#logout",  as: :logout
+      post "forgot-password", to: "auth#forgot_password", as: :forgot_password
+      post "reset-password",  to: "auth#reset_password",  as: :reset_password
     end
 
     scope :basket, as: :basket do
       get    "",         to: "basket#show",    as: :show
       post   "",         to: "basket#create",  as: :create
+      patch  ":id",      to: "basket#update",  as: :update
       delete ":id",      to: "basket#destroy", as: :destroy
       post   "order",    to: "basket/orders#create", as: :order
     end

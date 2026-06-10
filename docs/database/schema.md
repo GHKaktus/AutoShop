@@ -176,6 +176,20 @@
 
 Очистка устаревших записей: `JwtDenylist.purge_expired!` (можно вешать на cron / `solid_queue`).
 
+### `password_reset_codes`
+Коды восстановления пароля (API 1.2.0, `POST /auth/forgot-password` и `POST /auth/reset-password`).
+
+| Поле | Тип | Ограничения | Описание |
+|------|-----|-------------|----------|
+| `id` | bigserial | PK | |
+| `account_id` | bigint | NOT NULL, FK → `accounts.id` | Владелец кода |
+| `code` | string | NOT NULL | 6-значный код из письма |
+| `expires_at` | datetime | NOT NULL | Срок действия (15 минут) |
+| `consumed_at` | datetime | NULL | Когда код использован |
+| `created_at`, `updated_at` | timestamp | NOT NULL | |
+
+**Индексы:** `(account_id, code)`, `expires_at`. Активные коды: `consumed_at IS NULL AND expires_at > now`.
+
 ---
 
 ## Связи (ActiveRecord)
@@ -184,6 +198,8 @@
 |--------|-------|----------------|-------|
 | `Account` | `has_one`     | `Basket` | `dependent: :destroy` |
 | `Account` | `has_many`    | `Order`  | `dependent: :destroy` |
+| `Account` | `has_many`    | `PasswordResetCode` | `dependent: :destroy` |
+| `PasswordResetCode` | `belongs_to` | `Account` | |
 | `Basket`  | `belongs_to`  | `Account` | |
 | `Basket`  | `has_many`    | `BasketItem` | `dependent: :destroy` |
 | `BasketItem` | `belongs_to` | `Basket` | |
@@ -214,6 +230,7 @@
 10. `20260606120002_change_products_money_and_stock.rb` — `cost`/`sale_cost` → decimal, `stock` → integer
 11. `20260606120003_change_orders_total_amount_and_drop_address.rb` — `total_amount` → decimal, удалён `address`
 12. `20260606120004_change_order_items_cost_to_decimal.rb` — `cost` → decimal
+13. `20260610120001_create_password_reset_codes.rb` — коды восстановления пароля (API 1.2.0)
 
 ---
 

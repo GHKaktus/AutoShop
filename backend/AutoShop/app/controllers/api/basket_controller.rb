@@ -36,6 +36,40 @@ module Api
       end
     end
 
+    def update
+      raw_quantity = params[:quantity]
+
+      unless raw_quantity.to_s.match?(/\A\d+\z/)
+        return render_error(
+          error:   "bad_request",
+          message: "quantity обязателен (целое ≥ 0)",
+          status:  :bad_request
+        )
+      end
+
+      quantity = raw_quantity.to_i
+
+      item = current_basket.basket_items.find_by(product_id: params[:id])
+      return render_not_found unless item
+
+      if quantity.zero?
+        item.destroy
+        return head :ok
+      end
+
+      item.quantity = quantity
+
+      if item.save
+        head :ok
+      else
+        render_error(
+          error:   "validation_error",
+          message: item.errors.full_messages.first || "Не удалось обновить количество",
+          status:  :bad_request
+        )
+      end
+    end
+
     def destroy
       item = current_basket.basket_items.find_by(product_id: params[:id])
       return render_not_found unless item

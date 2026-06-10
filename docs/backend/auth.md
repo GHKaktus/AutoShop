@@ -9,6 +9,8 @@
 | `POST` | `/auth/sign-up` | — | Регистрация. Возвращает JWT |
 | `POST` | `/auth/sign-in` | — | Авторизация. Возвращает JWT |
 | `POST` | `/auth/logout`  | `Bearer JWT` | Отзыв текущего токена |
+| `POST` | `/auth/forgot-password` | — | Запрос кода восстановления на email (API 1.2.0) |
+| `POST` | `/auth/reset-password`  | — | Сброс пароля по коду, возвращает JWT (API 1.2.0) |
 
 ### `POST /auth/sign-up`
 
@@ -39,6 +41,33 @@
 Ответы:
 - `200 OK` — токен добавлен в `JwtDenylist`, последующие запросы с ним отклоняются.
 - `401 Unauthorized` — токен отсутствует / уже отозван / просрочен.
+
+### `POST /auth/forgot-password` (API 1.2.0)
+
+Тело запроса:
+```json
+{ "email": "user@example.com" }
+```
+
+Логика: генерируется 6-значный код, сохраняется в `password_reset_codes` (TTL 15 минут, прежние неиспользованные коды аннулируются) и отправляется письмом (`PasswordResetMailer`).
+
+Ответы:
+- `200 OK` → `{ "message": "Код восстановления отправлен на вашу почту" }`
+- `404 Not Found` → пользователь с таким email не найден.
+
+### `POST /auth/reset-password` (API 1.2.0)
+
+Тело запроса:
+```json
+{ "email": "user@example.com", "code": "123456", "new_password": "NewSecurePassword456" }
+```
+
+Логика: проверяется активный (неиспользованный, не просроченный) код. При успехе пароль меняется, код помечается использованным, выдаётся JWT для автоматического входа.
+
+Ответы:
+- `200 OK` → `{ "token": "<JWT>" }`
+- `400 Bad Request` → неверный/просроченный код или некорректный новый пароль (`validation_error`).
+- `404 Not Found` → пользователь с таким email не найден.
 
 ## JWT-формат
 
@@ -90,7 +119,7 @@ before_action :authenticate_account!, :require_admin!
 
 ## Тесты
 
-`backend/AutoShop/test/controllers/api/auth_controller_test.rb` — 8 кейсов: sign-up (успех / дубль / короткий пароль), sign-in (успех / неверный пароль / неизвестный email), logout (успех + повторный отказ / без токена).
+`backend/AutoShop/test/controllers/api/auth_controller_test.rb` — sign-up / sign-in / logout, а также forgot-password (успех / неизвестный email) и reset-password (успех / неверный код / просроченный код / короткий пароль / неизвестный email).
 
 Запуск:
 ```bash
