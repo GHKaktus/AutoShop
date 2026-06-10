@@ -316,7 +316,7 @@ paths:
       tags:
       - Base
       summary: Получить товары по категории
-      description: Получение товаров из указанной категории с пагинацией
+      description: Получение товаров из указанной категории с пагинацией и фильтрацией
       parameters:
         - name: id
           in: path
@@ -331,6 +331,39 @@ paths:
             type: integer
             default: 0
           description: Номер страницы (каждая страница — 20 товаров к примеру)
+        - name: in_stock
+          in: query
+          schema:
+            type: string
+            enum:
+              - in_stock
+              - out_of_stock
+              - all
+            default: all
+          description: Фильтр по наличию на складе (in_stock — в наличии, out_of_stock — под заказ, all — все)
+        - name: price_min
+          in: query
+          schema:
+            type: number
+            minimum: 0
+          description: Нижняя граница цены для фильтрации
+        - name: price_max
+          in: query
+          schema:
+            type: number
+            minimum: 0
+          description: Верхняя граница цены для фильтрации
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - price_asc
+              - price_desc
+              - popularity
+              - status
+            default: popularity
+          description: Тип сортировки (price_asc — по возрастанию цены, price_desc — по убыванию цены, popularity — по популярности, status — по статусу наличия)
 
       responses:
         '200':
@@ -499,6 +532,62 @@ paths:
                 $ref: '#/components/schemas/Error'
   
   /basket/{id}:
+    patch:
+      tags:
+        - Basket
+      summary: Изменить количество товара в корзине
+      description: Обновляет количество указанного товара в корзине текущего пользователя (security - bearerAuth {JWT})
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: ID товара, количество которого нужно изменить
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - quantity
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+                  example: 3
+                  description: Новое количество товара (0 — удалить из корзины)
+      responses:
+        '200':
+          description: Количество товара успешно обновлено
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Неавторизованный доступ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Товар не найден в корзине
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags:
         - Basket
@@ -773,6 +862,112 @@ paths:
           description: Успешный выход из системы
         '401':
           description: Неавторизованный доступ (неверный или отсутствующий токен)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Запросить сброс пароля
+      description: Отправляет на указанный email код для восстановления пароля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                  description: Email пользователя, для которого запрашивается сброс пароля
+      responses:
+        '200':
+          description: Код восстановления отправлен на email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Код восстановления отправлен на вашу почту"
+        '404':
+          description: Пользователь с таким email не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Восстановить пароль
+      description: Восстанавливает пароль с использованием кода, отправленного на email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - code
+                - new_password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                  description: Email пользователя
+                code:
+                  type: string
+                  example: "123456"
+                  description: Код восстановления из письма
+                new_password:
+                  type: string
+                  minLength: 6
+                  maxLength: 128
+                  example: "NewSecurePassword456"
+                  description: Новый пароль (минимум 6 символов)
+      responses:
+        '200':
+          description: Пароль успешно изменён
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT-токен для автоматического входа после восстановления
+        '400':
+          description: Неверный код или данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Пользователь с таким email не найден
           content:
             application/json:
               schema:
