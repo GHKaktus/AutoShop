@@ -58,7 +58,7 @@ const Advantages = () => {
                         before:left-[-54px]
                         before:z-2
                         before:w-0
-                        2xl:before:w-27
+                        
                         before:aspect-square
                         before:rotate-45
                         before:bg-black1
@@ -70,7 +70,7 @@ const Advantages = () => {
                         after:translate-[-100%]
                         after:z-2
                         after:w-0
-                        2xl:after:w-27
+                        
                         after:aspect-square
                         after:rotate-45
                         after:bg-black1
@@ -84,7 +84,7 @@ const Advantages = () => {
                                 </p>
                             </div>
                         </div>
-                        <div className='absolute top-[50%] left-[50%] translate-[-50%] z-1 w-0 2xl:w-full h-full bg-red'></div>
+                        <div className='absolute top-[50%] left-[50%] translate-[-50%] z-1 w-0 h-full bg-red'></div>
                     </li>
                     <li
                         className="

@@ -1,0 +1,74 @@
+services:
+  # --- PostgreSQL ---
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # POSTGRES_DB намеренно не задаётся: создаётся служебная БД с именем
+    # пользователя, а production-БД (и solid_cache/queue/cable) создаёт и
+    # сидирует сам Rails через db:prepare при первом запуске backend.
+    environment:
+      POSTGRES_USER: ${AUTO_SHOP_DATABASE_USERNAME:-auto_shop}
+      POSTGRES_PASSWORD: ${AUTO_SHOP_DATABASE_PASSWORD:-changeme}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTO_SHOP_DATABASE_USERNAME:-auto_shop}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Порт наружу обычно не нужен; раскомментируйте для отладки
+    # ports:
+    #   - "5432:5432"
+
+  # --- Rails API (backend) ---
+  backend:
+    build:
+      context: ./backend/AutoShop
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: production
+      # Подключение к БД (db:prepare создаёт и мигрирует все БД solid_*)
+      AUTO_SHOP_DATABASE_HOST: db
+      AUTO_SHOP_DATABASE_PORT: 5432
+      AUTO_SHOP_DATABASE_USERNAME: ${AUTO_SHOP_DATABASE_USERNAME:-auto_shop}
+      AUTO_SHOP_DATABASE_PASSWORD: ${AUTO_SHOP_DATABASE_PASSWORD:-changeme}
+      AUTO_SHOP_DATABASE_NAME: ${AUTO_SHOP_DATABASE_NAME:-auto_shop_production}
+      # Секрет для production (сгенерируйте: openssl rand -hex 64)
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      # Разрешённые origin'ы фронтенда для CORS (через пробел)
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS:-http://localhost}
+      # Запускать обработчик фоновых задач Solid Queue внутри Puma
+      SOLID_QUEUE_IN_PUMA: "1"
+      RAILS_LOG_LEVEL: ${RAILS_LOG_LEVEL:-info}
+      RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
+    volumes:
+      - storage_data:/rails/storage
+    ports:
+      - "${BACKEND_PORT:-3000}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/up || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # --- React SPA (frontend) ---
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Публичный адрес backend API (вшивается в сборку Vite).
+        # Для реального сервера укажите, например, https://api.example.com
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+
+volumes:
+  db_data:
+  storage_data:

@@ -1,0 +1,29 @@
+.git
+.gitignore
+
+# Зависимости и артефакты сборки
+/.bundle
+/vendor/bundle
+
+# Логи и временные файлы
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/.keep
+
+# Загруженные файлы и БД
+/storage/*
+!/storage/.keep
+/db/*.sqlite3*
+
+# Секреты и окружение (передаются через переменные среды)
+/config/master.key
+.env
+.env.*
+
+# Прочее
+/node_modules
+.dockerignore
+Dockerfile
