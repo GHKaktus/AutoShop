@@ -5,6 +5,10 @@ import EmailIcon from "@assets/icons/email-icon.svg?react";
 import MessageIcon from "@assets/icons/message.svg?react";
 import OClockIcon from "@assets/icons/o-clock.svg?react";
 
+const ADDRESS = "г. Севастополь, ул. Университетская 33";
+// Карта с меткой по адресу (Яндекс.Карты, виджет без API-ключа)
+const MAP_SRC = `https://yandex.ru/map-widget/v1/?text=${encodeURIComponent(ADDRESS)}&z=16`;
+
 const ContactSection = () => {
     return (
         <section className="py-[88px] bg-[#EDEDED]">
@@ -34,7 +38,7 @@ const ContactSection = () => {
                                 </div>
                                 <div className="flex items-center justify-start gap-x-[16px]">
                                     <MessageIcon />
-                                    г. Севастополь, ул. Университетская 33
+                                    {ADDRESS}
                                 </div>
                             </div>
                         </div>
@@ -51,9 +55,16 @@ const ContactSection = () => {
                             </div>
                         </div>
                     </div>
-                    {/* Карта */}
-                    <div className="w-full h-[442px] bg-amber-200">
-                        
+                    {/* Карта с меткой адреса */}
+                    <div className="w-full h-[442px]">
+                        <iframe
+                            title={`Карта: ${ADDRESS}`}
+                            src={MAP_SRC}
+                            className="w-full h-full border-0"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            allowFullScreen
+                        ></iframe>
                     </div>
                 </div>
             </div>

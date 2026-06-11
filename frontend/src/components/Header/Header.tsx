@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BASE_ROUTE } from "@/utils/consts";
+import { ADMIN_ROUTE, BASE_ROUTE, CONTACTS_ROUTE } from "@/utils/consts";
 import MenuNavigation from "./HeaderComponents/MenuNavigation";
 import MenuActions from "./HeaderComponents/MenuActions";
 import BurgerButton from "./HeaderComponents/BurgerButton";
 import BurgerMenu from "./HeaderComponents/BurgerMenu";
 import Button from "../ui/Button";
+import { useIsAdmin } from "@/pages/Admin/hooks";
 import './styles.css';
 
 const Header = () => {
+
+    const isAdmin = useIsAdmin();
 
     const [isOpenBurgerMenu, setIsOpenBurgerMenu] = useState<boolean>(false);
     const [isHiddenButton, setIsHiddenButton] = useState<boolean>(false);
@@ -77,8 +80,8 @@ const Header = () => {
                     <img src="/src/assets/icons/logo.svg" alt="Логотип компании" className="h-[46px] md:h-[56px] duration-200 hover:opacity-80" />
                 </Link>
                 <MenuNavigation display="header" isHidden={isHiddenMenuNavigation}/>
-                <Button type="link" linkTo="/catalog" paddingInline="px-3 md:px-5" paddingBlock="py-3" addClasses={`${isHiddenButton && 'hidden'}`}>
-                    Заказать звонок
+                <Button type="link" linkTo={isAdmin ? ADMIN_ROUTE : CONTACTS_ROUTE} paddingInline="px-3 md:px-5" paddingBlock="py-3" addClasses={`${isHiddenButton && 'hidden'} whitespace-nowrap text-center`}>
+                    {isAdmin ? "Админ панель" : "Заказать звонок"}
                 </Button>
                 <MenuActions display='header' isHidden={!isHiddenBurgerButton} />
                 <BurgerButton isHidden={isHiddenBurgerButton} isOpen={isOpenBurgerMenu} onClick={handleClickBurgerButton}/>

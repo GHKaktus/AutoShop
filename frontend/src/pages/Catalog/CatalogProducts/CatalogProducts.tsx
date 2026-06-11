@@ -6,19 +6,18 @@ import ColLayoutIcon from "@assets/icons/flex-col-layout.svg?react";
 import FilterIcon from "@assets/icons/filter-icon.svg?react";
 import CheckMarkIcon from "@assets/icons/check-mark.svg?react";
 import AddBasketIcon from "@assets/icons/add-basket.svg?react";
-import magnumImg from "@assets/images/catalog-component/products/magnum-60h-1.png";
 import { useMemo, useState } from "react";
-import { API_BASE_URL } from "@/utils/api";
+import { CONTACTS_ROUTE } from "@/utils/consts";
+import { resolveProductImage } from "@/utils/productImage";
 import type { Product } from "./types";
 import { useCatalogProducts } from "./hooks";
 import { usePriceRange } from "./priceRange";
 import "./style.css";
 
-function resolveImage(product: Product): string {
-    if (!product.picture) return magnumImg;
-    if (product.picture.startsWith("http")) return product.picture;
-    return `${API_BASE_URL}${product.picture}`;
-}
+// Виды сортировки
+const SORT_PRICE = 0;
+const SORT_POPULARITY = 1;
+const SORT_AVAILABILITY = 2;
 
 function isOnSale(product: Product): boolean {
     return product.sale_cost >= 0 && product.sale_cost < product.cost;
@@ -31,6 +30,8 @@ function effectivePrice(product: Product): number {
 const CatalogProducts = () => {
 
     const {
+        slug,
+        categoryId,
         categoryName,
         products,
         loading,
@@ -51,18 +52,51 @@ const CatalogProducts = () => {
     const [isActiveCostInForm, setIsActiveCostInForm] = useState<boolean>(true);
     const [isActiveStatusInForm, setIsActiveStatusInForm] = useState<boolean>(true);
     const [isActiveFilterInForm, setIsActiveFilterInForm] = useState<boolean>(true);
-    const [currentFilterText, setCurrentFilterText] = useState<number>(0); // 0 - по цене, 1 - по популярности, 2 - по наличию
     const [isFilterIcon, setIsFilterIcon] = useState<boolean>(false);
-    // Применённый диапазон цен (null — фильтр не активен)
+
+    // Сортировка (живая): 0 - по цене, 1 - по популярности, 2 - по наличию
+    const [sortBy, setSortBy] = useState<number>(SORT_POPULARITY);
+    const [priceAsc, setPriceAsc] = useState<boolean>(true);
+
+    // Черновик фильтра по статусу (применяется по кнопке «Показать»)
+    const [statusDraft, setStatusDraft] = useState<{ inStock: boolean; onOrder: boolean }>({ inStock: false, onOrder: false });
+
+    // Применённые фильтры
     const [appliedRange, setAppliedRange] = useState<{ start: number; end: number } | null>(null);
+    const [appliedStatus, setAppliedStatus] = useState<{ inStock: boolean; onOrder: boolean }>({ inStock: false, onOrder: false });
 
     const visibleProducts = useMemo(() => {
-        if (!appliedRange) return products;
-        return products.filter((product) => {
-            const price = effectivePrice(product);
-            return price >= appliedRange.start && price <= appliedRange.end;
-        });
-    }, [products, appliedRange]);
+        let result = [...products];
+
+        // Фильтр по диапазону цен
+        if (appliedRange) {
+            result = result.filter((product) => {
+                const price = effectivePrice(product);
+                return price >= appliedRange.start && price <= appliedRange.end;
+            });
+        }
+
+        // Фильтр по статусу наличия (если выбран ровно один статус)
+        const { inStock, onOrder } = appliedStatus;
+        if (inStock && !onOrder) {
+            result = result.filter((product) => product.stock > 0);
+        } else if (onOrder && !inStock) {
+            result = result.filter((product) => product.stock <= 0);
+        }
+
+        // Сортировка
+        if (sortBy === SORT_PRICE) {
+            result.sort((a, b) => priceAsc
+                ? effectivePrice(a) - effectivePrice(b)
+                : effectivePrice(b) - effectivePrice(a));
+        } else if (sortBy === SORT_AVAILABILITY) {
+            // Сначала товары в наличии, затем под заказ
+            result.sort((a, b) => Number(b.stock > 0) - Number(a.stock > 0));
+        }
+        // SORT_POPULARITY — порядок с сервера (по умолчанию по популярности)
+
+        return result;
+    }, [products, appliedRange, appliedStatus, sortBy, priceAsc]);
 
     function handleClickCostInForm() {
         setIsActiveCostInForm(prev => !prev);
@@ -76,8 +110,13 @@ const CatalogProducts = () => {
         setIsActiveFilterInForm(prev => !prev);
     }
 
-    function handleClickOnButtonFilterText(id: number) {
-        setCurrentFilterText(id);
+    // Выбор сортировки: повторный клик по «цене» меняет направление
+    function handleSelectSort(id: number) {
+        if (id === SORT_PRICE && sortBy === SORT_PRICE) {
+            setPriceAsc(prev => !prev);
+            return;
+        }
+        setSortBy(id);
     }
 
     function handleClickOnButtonView(id: number) {
@@ -88,13 +127,24 @@ const CatalogProducts = () => {
         setIsFilterIcon(prev => !prev);
     }
 
-    function handleApplyPrice() {
-        setAppliedRange({ start: priceRange.start, end: priceRange.end });
+    function handleToggleStatus(key: "inStock" | "onOrder") {
+        setStatusDraft(prev => ({ ...prev, [key]: !prev[key] }));
     }
 
-    function handleResetPrice() {
+    // «Показать» — применяем диапазон цен и фильтр по статусу
+    function handleApply() {
+        setAppliedRange({ start: priceRange.start, end: priceRange.end });
+        setAppliedStatus(statusDraft);
+    }
+
+    // «Сбросить» — сбрасываем все параметры и сортировку
+    function handleReset() {
         priceRange.reset();
         setAppliedRange(null);
+        setStatusDraft({ inStock: false, onOrder: false });
+        setAppliedStatus({ inStock: false, onOrder: false });
+        setSortBy(SORT_POPULARITY);
+        setPriceAsc(true);
     }
 
     return (
@@ -210,12 +260,12 @@ const CatalogProducts = () => {
                                     </legend>
                                     <div className={`flex flex-col items-start justify-center gap-y-6 px-3 bg-[#2D2D2D] ${isActiveStatusInForm ? 'h-31 py-5' : 'h-0 py-0'} overflow-hidden duration-200`}>
                                         <div className="flex flex-row-reverse items-center justify-end gap-x-2">
-                                            <label htmlFor="isPresent" className="">В наличии</label>
-                                            <input type="checkbox" id="isPresent" className="w-6 aspect-square" name="isPresent" />
+                                            <label htmlFor="isPresent" className="cursor-pointer">В наличии</label>
+                                            <input type="checkbox" id="isPresent" className="w-6 aspect-square cursor-pointer" name="isPresent" checked={statusDraft.inStock} onChange={() => handleToggleStatus("inStock")} />
                                         </div>
                                         <div className="flex flex-row-reverse items-center justify-end gap-x-2">
-                                            <label htmlFor="onOrder" className="">Под заказ</label>
-                                            <input type="checkbox" id="onOrder" className="w-6 aspect-square" name="onOrder" />
+                                            <label htmlFor="onOrder" className="cursor-pointer">Под заказ</label>
+                                            <input type="checkbox" id="onOrder" className="w-6 aspect-square cursor-pointer" name="onOrder" checked={statusDraft.onOrder} onChange={() => handleToggleStatus("onOrder")} />
                                         </div>
                                     </div>
                                 </fieldset>
@@ -228,26 +278,26 @@ const CatalogProducts = () => {
                                     </legend>
                                     <div className={`flex flex-col items-start justify-center gap-y-6 px-3 bg-[#2D2D2D] ${isActiveFilterInForm ? 'h-44 py-5' : 'h-0 py-0'} overflow-hidden duration-200`}>
                                         <div className="flex flex-row-reverse items-center justify-end gap-x-2">
-                                            <label htmlFor="sortingWorth" className="">По цене</label>
-                                            <input type="checkbox" id="sortingWorth" className="w-6 aspect-square" name="sortingWorth" />
+                                            <label htmlFor="sortingWorth" className="cursor-pointer">По цене{sortBy === SORT_PRICE ? (priceAsc ? " ↑" : " ↓") : ""}</label>
+                                            <input type="checkbox" id="sortingWorth" className="w-6 aspect-square cursor-pointer" name="sortingWorth" checked={sortBy === SORT_PRICE} onChange={() => handleSelectSort(SORT_PRICE)} />
                                         </div>
                                         <div className="flex flex-row-reverse items-center justify-end gap-x-2">
-                                            <label htmlFor="sortingPopular" className="">По популярности</label>
-                                            <input type="checkbox" id="sortingPopular" className="w-6 aspect-square" name="sortingPopular" />
+                                            <label htmlFor="sortingPopular" className="cursor-pointer">По популярности</label>
+                                            <input type="checkbox" id="sortingPopular" className="w-6 aspect-square cursor-pointer" name="sortingPopular" checked={sortBy === SORT_POPULARITY} onChange={() => handleSelectSort(SORT_POPULARITY)} />
                                         </div>
                                         <div className="flex flex-row-reverse items-center justify-end gap-x-2">
-                                            <label htmlFor="sortingAvailable" className="">По наличию</label>
-                                            <input type="checkbox" id="sortingAvailable" className="w-6 aspect-square" name="sortingAvailable" />
+                                            <label htmlFor="sortingAvailable" className="cursor-pointer">По наличию</label>
+                                            <input type="checkbox" id="sortingAvailable" className="w-6 aspect-square cursor-pointer" name="sortingAvailable" checked={sortBy === SORT_AVAILABILITY} onChange={() => handleSelectSort(SORT_AVAILABILITY)} />
                                         </div>
                                     </div>
                                 </fieldset>
 
                                 {/* Кнопки */}
                                 <div className="flex flex-col xl:flex-row items-center xl:justify-center gap-3 px-3 py-7">
-                                    <Button type="button" linkTo="" paddingInline="px-5" paddingBlock="py-3" textClasses="text-[0.75rem]" onClick={handleApplyPrice}>
+                                    <Button type="button" linkTo="" paddingInline="px-5" paddingBlock="py-3" textClasses="text-[0.75rem]" onClick={handleApply}>
                                         Показать
                                     </Button>
-                                    <Button type="button" linkTo="" paddingInline="px-5" paddingBlock="py-3" textClasses="text-[0.75rem]" onClick={handleResetPrice}>
+                                    <Button type="button" linkTo="" paddingInline="px-5" paddingBlock="py-3" textClasses="text-[0.75rem]" onClick={handleReset}>
                                         Сбросить
                                     </Button>
                                 </div>
@@ -262,17 +312,17 @@ const CatalogProducts = () => {
                                 <div className="hidden lg:flex items-center gap-x-2 lg:gap-x-5">
                                     <span className="">Сортировать:</span>
                                     <div className="flex items-center gap-x-2">
-                                        <button type="button" className={`flex items-center gap-x-1 ${currentFilterText === 0 ? 'text-red' : 'opacity-50'} hover:text-red duration-200 cursor-pointer`} onClick={() => handleClickOnButtonFilterText(0)}>
+                                        <button type="button" className={`flex items-center gap-x-1 ${sortBy === SORT_PRICE ? 'text-red' : 'opacity-50'} hover:text-red duration-200 cursor-pointer`} onClick={() => handleSelectSort(SORT_PRICE)}>
                                             <span>По цене</span>
-                                            <ArrowRightIcon className={`${currentFilterText === 0 ? 'rotate-90' : '-rotate-90'} duration-200`} />
+                                            <ArrowRightIcon className={`${sortBy === SORT_PRICE ? (priceAsc ? '-rotate-90' : 'rotate-90') : '-rotate-90'} duration-200`} />
                                         </button>
-                                        <button type="button" className={`flex items-center gap-x-1 ${currentFilterText === 1 ? 'text-red' : 'opacity-50'} hover:text-red duration-200 cursor-pointer`} onClick={() => handleClickOnButtonFilterText(1)}>
+                                        <button type="button" className={`flex items-center gap-x-1 ${sortBy === SORT_POPULARITY ? 'text-red' : 'opacity-50'} hover:text-red duration-200 cursor-pointer`} onClick={() => handleSelectSort(SORT_POPULARITY)}>
                                             <span>По популярности</span>
-                                            <ArrowRightIcon className={`${currentFilterText === 1 ? 'rotate-90' : '-rotate-90'} duration-200`} />
+                                            <ArrowRightIcon className={`${sortBy === SORT_POPULARITY ? 'rotate-90' : '-rotate-90'} duration-200`} />
                                         </button>
-                                        <button type="button" className={`flex items-center gap-x-1 ${currentFilterText === 2 ? 'text-red' : 'opacity-50'} hover:text-red duration-200 cursor-pointer`} onClick={() => handleClickOnButtonFilterText(2)}>
+                                        <button type="button" className={`flex items-center gap-x-1 ${sortBy === SORT_AVAILABILITY ? 'text-red' : 'opacity-50'} hover:text-red duration-200 cursor-pointer`} onClick={() => handleSelectSort(SORT_AVAILABILITY)}>
                                             <span>По наличию</span>
-                                            <ArrowRightIcon className={`${currentFilterText === 2 ? 'rotate-90' : '-rotate-90'} duration-200`} />
+                                            <ArrowRightIcon className={`${sortBy === SORT_AVAILABILITY ? 'rotate-90' : '-rotate-90'} duration-200`} />
                                         </button>
                                     </div>
                                 </div>
@@ -322,7 +372,7 @@ const CatalogProducts = () => {
                                 ) : products.length === 0 ? (
                                     <p className="text-[1.25rem] font-medium">В этой категории пока нет товаров.</p>
                                 ) : visibleProducts.length === 0 ? (
-                                    <p className="text-[1.25rem] font-medium">Нет товаров в выбранном диапазоне цен.</p>
+                                    <p className="text-[1.25rem] font-medium">Нет товаров по выбранным параметрам.</p>
                                 ) : (
                                     <ul
                                         className={`
@@ -338,16 +388,17 @@ const CatalogProducts = () => {
                                             const added = addedIds.has(product.id);
                                             const onSale = isOnSale(product);
                                             const displayCost = onSale ? product.sale_cost : product.cost;
+                                            const inStock = product.stock > 0;
 
                                             return (
-                                                <li key={product.id} className={`${currentView == 1 ? 'w-full' : ''}`}>
-                                                    <div className="relative w-full border-4 border-green leading-[1.2]">
+                                                <li key={product.id} className={`h-full ${currentView == 1 ? 'w-full' : ''}`}>
+                                                    <div className="relative h-full w-full border-4 border-green leading-[1.2]">
                                                         <article
                                                             className={`
-                                                            w-full grid bg-white
+                                                            w-full h-full grid bg-white
                                                             ${currentView == 1
-                                                                    ? 'grid-cols-2 grid-rows-[15fr_40fr_15fr_15fr_15fr] md:grid-cols-[35fr_37fr_28fr] md:grid-rows-[31fr_23fr_23fr_23fr] md:gap-x-7 md:gap-y-4 px-6 md:px-10 py-6 md:py-12'
-                                                                    : 'grid-cols-[10fr_1fr] px-[18px] py-[36px_27px] gap-x-[10px]'
+                                                                    ? 'content-start grid-cols-2 grid-rows-[15fr_40fr_15fr_15fr_15fr] md:grid-cols-[35fr_37fr_28fr] md:grid-rows-[31fr_23fr_23fr_23fr] md:gap-x-7 md:gap-y-4 px-6 md:px-10 py-6 md:py-12'
+                                                                    : 'grid-cols-[10fr_1fr] grid-rows-[auto_auto_auto_1fr_auto_auto_auto] px-[18px] py-[36px_27px] gap-x-[10px]'
                                                                 }
                                                         `}
                                                         >
@@ -362,7 +413,7 @@ const CatalogProducts = () => {
                                                             `}
                                                             >
                                                                 <img
-                                                                    src={resolveImage(product)}
+                                                                    src={resolveProductImage(product, categoryId)}
                                                                     alt={product.name}
                                                                     className="w-full h-auto"
                                                                 />
@@ -401,71 +452,103 @@ const CatalogProducts = () => {
                                                             `}
                                                             >
                                                                 <p className="text-[1.5rem] md:text-[2rem]">{displayCost} руб.</p>
-                                                                {onSale && (
-                                                                    <p className="text-[1rem] md:text-[1.25rem] text-grey line-through">{product.cost} руб.</p>
-                                                                )}
-                                                            </div>
-                                                            <div
-                                                                className={`
-                                                                    ${added ? 'hover:text-white' : 'border-none'} text-red
-                                                                    ${currentView == 1
-                                                                        ? 'col-start-1 col-end-2 md:col-start-3 md:col-end-4 row-start-4 row-end-5 md:row-start-2 md:row-end-3 mr-4 md:mr-0 mt-4 md:mt-0'
-                                                                        : 'row-start-5 row-end-6 col-start-1 col-end-3 md:col-end-2 mb-[20px] md:max-w-[130px] lg:max-w-none'
-                                                                    }
-                                                                `}
-                                                            >
                                                                 {
-                                                                    added
+                                                                    onSale
                                                                         ?
-                                                                        <Button type='link' linkTo="/basket" textClasses="text-[0.75rem]" addClasses="h-[48px] block flex items-center justify-center" title="Перейти в корзину">
-                                                                            Перейти в корзину
-                                                                        </Button>
+                                                                        <p className="text-[1rem] md:text-[1.25rem] text-grey line-through">{product.cost} руб.</p>
                                                                         :
-                                                                        <div className="flex items-center justify-between">
-                                                                            <Button type='button' linkTo="" paddingBlock="py-0" paddingInline="px-0" addClasses="min-w-[48px] md:min-w-[40px] lg:min-w-[48px] h-[48px] hover:bg-red hover:text-white hover:rounded-l-md cursor-pointer" borderWidth="border-4" isHover={true} onClick={() => increaseQuantity(product.id)} title="Увеличить количество">
-                                                                                +
-                                                                            </Button>
-                                                                            <div className="min-w-[48px] w-full h-[48px] flex items-center justify-center border-t-4 border-b-4 border-red">
-                                                                                <input type="text" name="quantityThings" value={quantity} className="w-[40px] text-center" inputMode="numeric" pattern="\d*" onChange={(e) => setQuantity(product.id, Number(e.target.value.replace(/\D/g, "")))} title='Количество товара' aria-label='Количество товара' />
-                                                                            </div>
-                                                                            <Button type='button' linkTo="" paddingBlock="py-0" paddingInline="px-0" addClasses="min-w-[48px] md:min-w-[40px] lg:min-w-[48px] h-[48px] hover:bg-red hover:text-white hover:rounded-r-md cursor-pointer" borderWidth="border-4" isHover={true} onClick={() => decreaseQuantity(product.id)} title="Уменьшить количество">
-                                                                                -
-                                                                            </Button>
-                                                                        </div>
+                                                                        // Заглушка-строка: сохраняет высоту блока цены, чтобы кнопки во всех карточках были на одном уровне
+                                                                        <p className="text-[1rem] md:text-[1.25rem] invisible" aria-hidden="true">&nbsp;</p>
                                                                 }
                                                             </div>
-                                                            <Button
-                                                                type="button"
-                                                                linkTo=""
-                                                                paddingInline="px-3"
-                                                                paddingBlock="py-2"
-                                                                addClasses={`
-                                                                    text-red hover:text-white flex items-center justify-center ${added && 'bg-red text-white rounded-md cursor-default'}
-                                                                    ${currentView == 1
-                                                                        ? 'col-start-2 col-end-3 md:col-start-3 md:col-end-4 row-start-4 row-end-5 md:row-start-3 md:row-end-4 ml-4 md:ml-0 mt-4 md:mt-0'
-                                                                        : `row-start-6 row-end-7 col-start-1 col-end-3 md:row-start-5 md:row-end-6 md:col-start-2 mb-[20px] h-[48px] flex items-center justify-center p-[10px]
+
+                                                            {/* Действия: для товаров в наличии — управление количеством и корзина;
+                                                                для товаров под заказ — кнопка «Заказать» (ведёт на страницу контактов) */}
+                                                            {inStock ? (
+                                                                <>
+                                                                    <div
+                                                                        className={`
+                                                                            ${added ? 'hover:text-white' : 'border-none'} text-red
+                                                                            ${currentView == 1
+                                                                                ? 'col-start-1 col-end-2 md:col-start-3 md:col-end-4 row-start-4 row-end-5 md:row-start-2 md:row-end-3 mr-4 md:mr-0 mt-4 md:mt-0'
+                                                                                : 'row-start-5 row-end-6 col-start-1 col-end-3 md:col-end-2 mb-[20px] md:max-w-[130px] lg:max-w-none'
+                                                                            }
+                                                                        `}
+                                                                    >
+                                                                        {
+                                                                            added
+                                                                                ?
+                                                                                <Button type='link' linkTo="/basket" textClasses="text-[0.75rem]" addClasses="h-[48px] block flex items-center justify-center" title="Перейти в корзину">
+                                                                                    Перейти в корзину
+                                                                                </Button>
+                                                                                :
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <Button type='button' linkTo="" paddingBlock="py-0" paddingInline="px-0" addClasses="min-w-[48px] md:min-w-[40px] lg:min-w-[48px] h-[48px] hover:bg-red hover:text-white hover:rounded-l-md cursor-pointer" borderWidth="border-4" isHover={true} onClick={() => increaseQuantity(product.id)} title="Увеличить количество">
+                                                                                        +
+                                                                                    </Button>
+                                                                                    <div className="min-w-[48px] w-full h-[48px] flex items-center justify-center border-t-4 border-b-4 border-red">
+                                                                                        <input type="text" name="quantityThings" value={quantity} className="w-[40px] text-center" inputMode="numeric" pattern="\d*" onChange={(e) => setQuantity(product.id, Number(e.target.value.replace(/\D/g, "")))} title='Количество товара' aria-label='Количество товара' />
+                                                                                    </div>
+                                                                                    <Button type='button' linkTo="" paddingBlock="py-0" paddingInline="px-0" addClasses="min-w-[48px] md:min-w-[40px] lg:min-w-[48px] h-[48px] hover:bg-red hover:text-white hover:rounded-r-md cursor-pointer" borderWidth="border-4" isHover={true} onClick={() => decreaseQuantity(product.id)} title="Уменьшить количество">
+                                                                                        -
+                                                                                    </Button>
+                                                                                </div>
+                                                                        }
+                                                                    </div>
+                                                                    <Button
+                                                                        type="button"
+                                                                        linkTo=""
+                                                                        paddingInline="px-3"
+                                                                        paddingBlock="py-2"
+                                                                        addClasses={`
+                                                                            text-red hover:text-white flex items-center justify-center ${added && 'bg-red text-white rounded-md cursor-default pointer-events-none'}
+                                                                            ${currentView == 1
+                                                                                ? 'col-start-2 col-end-3 md:col-start-3 md:col-end-4 row-start-4 row-end-5 md:row-start-3 md:row-end-4 ml-4 md:ml-0 mt-4 md:mt-0'
+                                                                                : `row-start-6 row-end-7 col-start-1 col-end-3 md:row-start-5 md:row-end-6 md:col-start-2 mb-[20px] h-[48px] flex items-center justify-center p-[10px]
+                                                                            `}
+                                                                        `}
+                                                                        textClasses="text-[0.75rem]"
+                                                                        title={`${added ? 'Добавлен в корзину' : 'Добавить в корзину'}`}
+                                                                        onClick={added ? undefined : () => handleAddToBasket(product.id)}
+                                                                    >
+                                                                        {
+                                                                            added
+                                                                                ?
+                                                                                <CheckMarkIcon className="w-[15px] h-[15px]" />
+                                                                                :
+                                                                                currentView == 1 ? "Добавить в корзину" : <AddBasketIcon className="w-[20px] h-[20px]" />
+                                                                        }
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <Button
+                                                                    type="link"
+                                                                    linkTo={CONTACTS_ROUTE}
+                                                                    paddingInline="px-3"
+                                                                    paddingBlock="py-2"
+                                                                    textClasses="text-[0.75rem]"
+                                                                    title="Заказать товар — связаться с компанией"
+                                                                    addClasses={`
+                                                                        text-red hover:text-white flex items-center justify-center w-full h-[48px]
+                                                                        ${currentView == 1
+                                                                            ? 'col-start-1 col-end-3 md:col-start-3 md:col-end-4 row-start-4 row-end-5 md:row-start-2 md:row-end-4 mt-4 md:mt-0'
+                                                                            : 'row-start-6 row-end-7 md:row-start-5 md:row-end-6 col-start-1 col-end-3 mb-[20px]'
+                                                                        }
                                                                     `}
-                                                                `}
-                                                                textClasses="text-[0.75rem]"
-                                                                title={`${added ? 'Добавлен в корзину' : 'Добавить в корзину'}`}
-                                                                onClick={() => handleAddToBasket(product.id)}
-                                                            >
-                                                                {
-                                                                    added
-                                                                        ?
-                                                                        <CheckMarkIcon className="w-[15px] h-[15px]" />
-                                                                        :
-                                                                        currentView == 1 ? "Добавить в корзину" : <AddBasketIcon className="w-[20px] h-[20px]" />
-                                                                }
-                                                            </Button>
+                                                                >
+                                                                    Заказать
+                                                                </Button>
+                                                            )}
+
                                                             <Button
                                                                 type="link"
                                                                 linkTo={`/products/${product.id}`}
+                                                                linkState={{ categorySlug: slug, categoryName }}
                                                                 paddingInline="px-3"
                                                                 paddingBlock="py-2"
                                                                 addClasses={`
                                                                     text-red hover:text-white
-                                                                    h-[48px]
+                                                                    h-[48px] flex items-center justify-center
                                                                     ${currentView == 1
                                                                         ? 'col-start-1 col-end-3 md:col-start-3 md:col-end-4 row-start-5 row-end-6 md:row-start-4 md:row-end-5 mt-4 md:mt-0'
                                                                         : 'row-start-7 row-end-8 md:row-start-6 md:row-end-7 col-span-2'
@@ -477,8 +560,8 @@ const CatalogProducts = () => {
                                                         </article>
 
                                                         {/* В наличии или нет */}
-                                                        <div className={`absolute top-0 left-full translate-x-[-100%] w-25 h-8 z-1 flex items-center justify-center ${product.stock > 0 ? 'bg-green' : 'bg-grey'}`}>
-                                                            {product.stock > 0 ? "В наличии" : "Под заказ"}
+                                                        <div className={`absolute top-0 left-full translate-x-[-100%] w-25 h-8 z-1 flex items-center justify-center ${inStock ? 'bg-green' : 'bg-grey'}`}>
+                                                            {inStock ? "В наличии" : "Под заказ"}
                                                         </div>
                                                     </div>
                                                 </li>

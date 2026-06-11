@@ -1,4 +1,4 @@
-import { ABOUT_NEWS_ROUTE, ABOUT_REVIEWS_ROUTE, ABOUT_ROUTE, BASKET_OFFER_ROUTE, BASKET_ROUTE, CATALOG_SLUG_ROUTE, CATALOG_ROUTE, CONTACTS_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE } from "@/utils/consts";
+import { ABOUT_NEWS_ROUTE, ABOUT_REVIEWS_ROUTE, ABOUT_ROUTE, BASKET_OFFER_ROUTE, BASKET_ROUTE, CATALOG_SLUG_ROUTE, CATALOG_ROUTE, CONTACTS_ROUTE, FORGOT_PASSWORD_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE, SEARCH_ROUTE } from "@/utils/consts";
 import type { BreadCrumbsConfig } from "./types";
 
 export const breadCrumbsConfig: BreadCrumbsConfig[] = [
@@ -11,5 +11,7 @@ export const breadCrumbsConfig: BreadCrumbsConfig[] = [
     { path: BASKET_OFFER_ROUTE, title: "Оформление заказа" },
     { path: CONTACTS_ROUTE, title: "Контакты" },
     { path: LOGIN_ROUTE, title: "Авторизация" },
-    { path: REGISTRATION_ROUTE, title: "Регистрация" }
+    { path: REGISTRATION_ROUTE, title: "Регистрация" },
+    { path: FORGOT_PASSWORD_ROUTE, title: "Восстановление пароля" },
+    { path: SEARCH_ROUTE, title: "Поиск" }
 ];

@@ -5,6 +5,7 @@ import { getProductsByCategory } from "@/api/catalog";
 import { addToBasket } from "@/api/basket";
 import { useAppSelector } from "@/store/hooks";
 import { getCategoryBySlug } from "@/store/categories";
+import { registerProductsCategory } from "@/utils/productImage";
 
 export const useCatalogProducts = () => {
     const { slug = "" } = useParams<{ slug: string }>();
@@ -41,6 +42,7 @@ export const useCatalogProducts = () => {
                 if (cancelled) return;
 
                 setProducts(response.items);
+                registerProductsCategory(response.items, categoryId);
                 setQuantities(
                     Object.fromEntries(response.items.map((product) => [product.id, 1]))
                 );
@@ -96,8 +98,8 @@ export const useCatalogProducts = () => {
     const decreaseQuantity = useCallback((productId: number) => {
         setQuantities((prev) => {
             const current = prev[productId] ?? 1;
-            // Количество не может стать отрицательным (минимум 0)
-            return { ...prev, [productId]: Math.max(current - 1, 0) };
+            // Количество товара в наличии не может быть меньше 1
+            return { ...prev, [productId]: Math.max(current - 1, 1) };
         });
     }, []);
 
@@ -105,8 +107,9 @@ export const useCatalogProducts = () => {
         (productId: number, value: number) => {
             setQuantities((prev) => {
                 const stock = stockById[productId] ?? Infinity;
-                const safe = Number.isFinite(value) ? Math.floor(value) : 0;
-                const clamped = Math.min(Math.max(safe, 0), stock);
+                const safe = Number.isFinite(value) ? Math.floor(value) : 1;
+                // Минимум 1: указать 0 единиц товара в наличии нельзя
+                const clamped = Math.min(Math.max(safe, 1), stock);
                 return { ...prev, [productId]: clamped };
             });
         },
@@ -133,6 +136,7 @@ export const useCatalogProducts = () => {
 
     return {
         slug,
+        categoryId,
         categoryName,
         products,
         loading,
