@@ -82,3 +82,83 @@ docker compose down -v
 - `VITE_API_URL` фиксируется на этапе сборки фронтенда — при смене адреса API
   пересоберите образ `frontend` (`docker compose build frontend`).
 - Порты на хосте настраиваются через `FRONTEND_PORT` / `BACKEND_PORT` в `.env`.
+
+## 5. Деплой на VPS по IP (без домена, через Docker)
+
+Если домена нет и приложение доступно только по IP, фронтенд и backend
+разводятся **по портам** (разные порты = разные origin, CORS закрывает обращение,
+коллизий маршрутов нет):
+
+- Фронтенд: `http://IP_VPS` (порт 80)
+- Backend API: `http://IP_VPS:3000`
+
+> ⚠️ По голому IP нет HTTPS — JWT-токены идут по HTTP в открытом виде.
+> Подходит для теста/демо. При появлении домена перейдите на поддомены
+> `shop.*` / `api.*` + Let's Encrypt (см. раздел 4).
+
+### 5.1. Установка Docker на VPS (Ubuntu/Debian)
+
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+newgrp docker
+docker --version && docker compose version
+```
+
+### 5.2. Проверка занятых портов (на VPS уже есть другие приложения)
+
+```bash
+sudo ss -tlnp | grep -E ':80|:3000'
+```
+
+Если `80` занят — задайте `FRONTEND_PORT=8080` (или другой свободный), если занят
+`3000` — `BACKEND_PORT=3001`. Значения `VITE_API_URL` и `FRONTEND_ORIGINS` должны
+точно совпадать с тем, как браузер реально открывает фронт и API (включая порт).
+
+### 5.3. Код и `.env`
+
+```bash
+git clone https://github.com/GHKaktus/AutoShop.git
+cd AutoShop
+git checkout frontend-features-update
+openssl rand -hex 64          # для SECRET_KEY_BASE
+cp .env.example .env
+nano .env
+```
+
+Пример `.env` для IP-only (фронт на 80, API на 3000):
+
+```dotenv
+AUTO_SHOP_DATABASE_USERNAME=auto_shop
+AUTO_SHOP_DATABASE_PASSWORD=надёжный_пароль
+AUTO_SHOP_DATABASE_NAME=auto_shop_production
+SECRET_KEY_BASE=сгенерированный_хэш
+FRONTEND_ORIGINS=http://IP_VPS
+VITE_API_URL=http://IP_VPS:3000
+FRONTEND_PORT=80
+BACKEND_PORT=3000
+```
+
+> Если фронт не на 80 — добавьте порт и в `FRONTEND_ORIGINS`
+> (например `http://IP_VPS:8080`). Если API не на 3000 — поправьте `VITE_API_URL`
+> (например `http://IP_VPS:3001`).
+
+### 5.4. Сборка, запуск, файрвол
+
+```bash
+docker compose build
+docker compose up -d
+docker compose ps
+
+sudo ufw allow 80/tcp     # или выбранный FRONTEND_PORT
+sudo ufw allow 3000/tcp   # или выбранный BACKEND_PORT (браузер ходит на API напрямую)
+```
+
+### 5.5. Проверка
+
+```bash
+curl -i http://IP_VPS:3000/up     # backend health → 200
+```
+
+Откройте `http://IP_VPS` в браузере — каталог, поиск, корзина, вход и админ-панель
+(`/admin`) должны работать.
