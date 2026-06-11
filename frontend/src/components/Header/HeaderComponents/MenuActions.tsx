@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CATALOG_ROUTE, BASKET_ROUTE } from '@/utils/consts';
+import { BASKET_ROUTE, LOGIN_ROUTE } from '@/utils/consts';
 import SearchIcon from '@assets/icons/search.svg?react';
 import BasketIcon from '@assets/icons/basket.svg?react';
 import ProfileIcon from '@assets/icons/profile.svg?react';
@@ -32,7 +32,7 @@ const MenuActions = ({ display, isHidden }:MenuActionsProps ) => {
                 </Link>
             </li>
             <li className="">
-                <Link to={CATALOG_ROUTE} aria-label="авторизация" className="hover:opacity-80">
+                <Link to={LOGIN_ROUTE} aria-label="авторизация" className="hover:opacity-80">
                     <div className="w-10 aspect-square">
                         <ProfileIcon />
                     </div>
