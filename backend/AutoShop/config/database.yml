@@ -31,7 +31,7 @@ development:
   username: auto_shop
 
   # The password associated with the PostgreSQL role (username).
-  password: '0000'
+  password: '1234'
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -58,7 +58,7 @@ test:
   <<: *default
   database: auto_shop_test
   username: auto_shop
-  password: '0000'
+  password: '1234'
   host: localhost
   port: 5432
 
@@ -91,9 +91,11 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: auto_shop_production
-    username: auto_shop
+    database: <%= ENV.fetch("AUTO_SHOP_DATABASE_NAME", "auto_shop_production") %>
+    username: <%= ENV.fetch("AUTO_SHOP_DATABASE_USERNAME", "auto_shop") %>
     password: <%= ENV["AUTO_SHOP_DATABASE_PASSWORD"] %>
+    host: <%= ENV.fetch("AUTO_SHOP_DATABASE_HOST", "localhost") %>
+    port: <%= ENV.fetch("AUTO_SHOP_DATABASE_PORT", 5432) %>
   cache:
     <<: *primary_production
     database: auto_shop_production_cache

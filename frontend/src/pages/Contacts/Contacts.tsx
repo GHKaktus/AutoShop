@@ -2,7 +2,6 @@ import BreadCrumbs from "@/components/BreadCrumbs/BreadCrumbs";
 import Welcome from "@/components/Welcome/Welcome";
 import type { WelcomeInformation } from "@/components/Welcome/types";
 import ContactSection from "./ContactsSections/ContactSection";
-import QuestionSection from "./ContactsSections/QuestionSection";
 
 const Contacts = () => {
 

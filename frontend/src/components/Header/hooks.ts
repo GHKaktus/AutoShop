@@ -49,12 +49,12 @@ export const useHeaderDatasets = () => {
         setCurrentOption(resolveActiveOption(location.pathname));
     }, [location.pathname]);
 
-    function handleClick(event: React.MouseEvent<HTMLElement>, id: number) {
+    function handleClick(_event: React.MouseEvent<HTMLElement>, id: number) {
         if (currentOption === id) return;
         setCurrentOption(id);
     }
 
-    function handleMouseEnter(event: React.MouseEvent<HTMLElement>, id: number) {
+    function handleMouseEnter(_event: React.MouseEvent<HTMLElement>, id: number) {
         setHoverOption(id);
     }
 

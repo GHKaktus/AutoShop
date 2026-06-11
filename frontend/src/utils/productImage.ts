@@ -47,10 +47,6 @@ function fallbackForCategory(categoryId?: number | null): string {
     return magnumImg;
 }
 
-function fallbackForProduct(productId: number): string {
-    return fallbackForCategory(productCategoryById.get(productId));
-}
-
 export function resolveProductImage(
     product: Product,
     categoryId?: number | null

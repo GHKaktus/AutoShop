@@ -7,7 +7,7 @@ export const useCatalogLogic = () => {
 
     const [currentCard, setCurrentCard] = useState<number>(1);
 
-    function handleClick(event: React.MouseEvent<HTMLDivElement>, id: number) {
+    function handleClick(_event: React.MouseEvent<HTMLDivElement>, id: number) {
         if (currentCard === id) return;
         setCurrentCard(id);
     }

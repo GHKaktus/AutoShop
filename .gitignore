@@ -177,3 +177,9 @@ docker-compose.override.yml
 /coverage/
 /tmp/
 /dist/
+
+# === Docker deploy: явно разрешаем нужные для деплоя файлы ===
+!.env.example
+!.dockerignore
+!frontend/.dockerignore
+!backend/AutoShop/.dockerignore
