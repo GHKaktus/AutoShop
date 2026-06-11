@@ -1,4 +1,4 @@
-import { BASE_ROUTE, CATALOG_ROUTE } from "@/utils/consts";
+import { BASE_ROUTE, CATALOG_ROUTE, CONTACTS_ROUTE } from "@/utils/consts";
 import { Link } from "react-router-dom";
 import type { ElementLinks } from "./types";
 import Button from "@components/ui/Button";
@@ -50,7 +50,7 @@ const Footer = () => {
                                     {
                                         element.links.map((link: Category) => (
                                             <li key={link.id}>
-                                                <Link to={CATALOG_ROUTE} className="text-[0.75rem] opacity-[0.5] uppercase font-medium leading-normal tracking-normal duration-200 hover:opacity-100">
+                                                <Link to={`${CATALOG_ROUTE}/${link.slug}`} className="text-[0.75rem] opacity-[0.5] uppercase font-medium leading-normal tracking-normal duration-200 hover:opacity-100">
                                                     {link.name}
                                                 </Link>
                                             </li>
@@ -90,7 +90,7 @@ const Footer = () => {
                             avantix5@gmail.com
                         </a>
                     </div>
-                    <Button type="link" linkTo={CATALOG_ROUTE} paddingInline="px-3 md:px-5" paddingBlock="py-3">
+                    <Button type="link" linkTo={CONTACTS_ROUTE} paddingInline="px-3 md:px-5" paddingBlock="py-3">
                         Заказать звонок
                     </Button>
                 </div>

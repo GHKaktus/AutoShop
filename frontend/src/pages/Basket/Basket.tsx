@@ -3,8 +3,7 @@ import Welcome from "@/components/Welcome/Welcome";
 import BreadCrumbs from "@/components/BreadCrumbs/BreadCrumbs";
 import type { WelcomeInformation } from "@/components/Welcome/types";
 import CrestikIcon from "@assets/icons/basket-crestik.svg?react";
-import fallbackImg from "@assets/images/catalog-component/products/magnum-60h-1.png";
-import { API_BASE_URL } from "@/utils/api";
+import { resolveBasketProductImage } from "@/utils/productImage";
 import { effectiveCost } from "@/store/basket";
 import type { BasketItem } from "@/store/basket";
 import { CATALOG_ROUTE, BASKET_OFFER_ROUTE } from "@/utils/consts";
@@ -15,12 +14,6 @@ const welcomeInfo: WelcomeInformation = {
     buttonText: "Перейти в каталог",
     image: "[background:url('/src/assets/images/home-component/welcome-section/landscape.jpg')_center/cover_no-repeat]"
 };
-
-function resolveImage(picture?: string | null): string {
-    if (!picture) return fallbackImg;
-    if (picture.startsWith("http")) return picture;
-    return `${API_BASE_URL}${picture}`;
-}
 
 const Basket = () => {
 
@@ -86,7 +79,7 @@ const Basket = () => {
                                                 >
                                                     {/* Изображение товара */}
                                                     <div className="w-[120px] sm:w-[140px] lg:w-[120px] shrink-0">
-                                                        <img src={resolveImage(el.product.picture)} alt={el.product.name} className="w-full h-auto" />
+                                                        <img src={resolveBasketProductImage(el.product)} alt={el.product.name} className="w-full h-auto" />
                                                     </div>
 
                                                     {/* Название и наличие */}

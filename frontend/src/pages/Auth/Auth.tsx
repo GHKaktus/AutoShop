@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import BreadCrumbs from "@/components/BreadCrumbs/BreadCrumbs";
 import Button from "@/components/ui/Button";
-import { LOGIN_ROUTE, REGISTRATION_ROUTE } from "@/utils/consts";
+import { FORGOT_PASSWORD_ROUTE, LOGIN_ROUTE, REGISTRATION_ROUTE } from "@/utils/consts";
 import { useAuthForm, type AuthMode } from "./hooks";
 
 const Auth = () => {
@@ -79,6 +79,12 @@ const Auth = () => {
                                         autoComplete="new-password"
                                     />
                                 </label>
+                            )}
+
+                            {!isRegister && (
+                                <Link to={FORGOT_PASSWORD_ROUTE} className="self-end text-grey font-medium hover:text-red duration-200">
+                                    Забыли пароль?
+                                </Link>
                             )}
 
                             {error && (

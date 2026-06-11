@@ -13,9 +13,10 @@ interface ButtonProps {
     isHover?: boolean | null | undefined; // true - custom hover effect described in addClasses, false/null/undefinded - default value
     title?: string;
     onClick?: React.MouseEventHandler<HTMLButtonElement>;
+    linkState?: unknown; // данные, прокидываемые через router state при type === 'link'
 }
 
-const Button = ({ type, linkTo, children, paddingInline, paddingBlock, textClasses, addClasses, borderWidth, isHover, title, onClick }: ButtonProps) => {
+const Button = ({ type, linkTo, children, paddingInline, paddingBlock, textClasses, addClasses, borderWidth, isHover, title, onClick, linkState }: ButtonProps) => {
 
     const classStyles = `
         ${textClasses ? `${textClasses}` : 'text-[0.875rem] sm:text-[1rem]'} font-bold leading-normal tracking-normal
@@ -28,7 +29,7 @@ const Button = ({ type, linkTo, children, paddingInline, paddingBlock, textClass
             {
                 type === "link"
                     ? 
-                    <Link to={linkTo} className={classStyles} title={title}>
+                    <Link to={linkTo} state={linkState} className={classStyles} title={title}>
                         {children}
                     </Link>
                     : 

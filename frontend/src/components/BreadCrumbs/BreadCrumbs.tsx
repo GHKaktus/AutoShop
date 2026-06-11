@@ -1,11 +1,19 @@
 import { Link } from "react-router-dom";
 import { breadCrumbs } from "./hooks";
 import { BASE_ROUTE } from "@/utils/consts";
+import type { BreadCrumbsList } from "./types";
 import ArrowRightIcon from "@assets/icons/arrow-right.svg?react";
 
-const BreadCrumbs = () => {
+interface BreadCrumbsProps {
+    // Если переданы готовые элементы (например, на странице товара, где
+    // категория не содержится в URL) — используем их вместо вычисления по пути.
+    items?: BreadCrumbsList | null;
+}
 
-    const breadCrumbsList = breadCrumbs();
+const BreadCrumbs = ({ items }: BreadCrumbsProps = {}) => {
+
+    const computedList = breadCrumbs();
+    const breadCrumbsList = items ?? computedList;
 
     return (
         <section className="w-full bg-white">

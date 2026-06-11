@@ -17,7 +17,7 @@ const Contacts = () => {
             <Welcome information={welcomeInformation} />
             <BreadCrumbs />
             <ContactSection />
-            <QuestionSection />
+            {/* <QuestionSection /> */}
         </>
     );
 };
