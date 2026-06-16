@@ -42,9 +42,32 @@ export interface ProductForm {
     cost: number;
     sale_cost?: number;
     category_id: number;
-    picture?: string;
     description?: string;
     stock?: number;
+}
+
+function buildProductFormData(form: ProductForm, imageFile?: File | null): FormData {
+    const fd = new FormData();
+    fd.append("name", form.name);
+    fd.append("cost", String(form.cost));
+    fd.append("sale_cost", String(form.sale_cost ?? -1));
+    fd.append("category_id", String(form.category_id));
+    if (form.description) fd.append("description", form.description);
+    if (form.stock !== undefined) fd.append("stock", String(form.stock));
+    if (imageFile) fd.append("image", imageFile);
+    return fd;
+}
+
+function buildProductUpdateFormData(form: Partial<ProductForm>, imageFile?: File | null): FormData {
+    const fd = new FormData();
+    if (form.name !== undefined) fd.append("name", form.name);
+    if (form.cost !== undefined) fd.append("cost", String(form.cost));
+    if (form.sale_cost !== undefined) fd.append("sale_cost", String(form.sale_cost));
+    if (form.category_id !== undefined) fd.append("category_id", String(form.category_id));
+    if (form.description !== undefined) fd.append("description", form.description);
+    if (form.stock !== undefined) fd.append("stock", String(form.stock));
+    if (imageFile) fd.append("image", imageFile);
+    return fd;
 }
 
 export interface CategoryForm {
@@ -66,17 +89,17 @@ export function getAdminProducts(page = 0): Promise<ProductsPage> {
     return apiFetch<ProductsPage>(`/admin/products?page=${page}`);
 }
 
-export function createAdminProduct(form: ProductForm): Promise<Product> {
+export function createAdminProduct(form: ProductForm, imageFile?: File | null): Promise<Product> {
     return apiFetch<Product>("/admin/products", {
         method: "POST",
-        body: JSON.stringify(form)
+        body: buildProductFormData(form, imageFile)
     });
 }
 
-export function updateAdminProduct(id: number, form: Partial<ProductForm>): Promise<Product> {
+export function updateAdminProduct(id: number, form: Partial<ProductForm>, imageFile?: File | null): Promise<Product> {
     return apiFetch<Product>(`/admin/products/${id}`, {
         method: "PUT",
-        body: JSON.stringify(form)
+        body: buildProductUpdateFormData(form, imageFile)
     });
 }
 

@@ -1,6 +1,8 @@
 import BreadCrumbs from "@/components/BreadCrumbs/BreadCrumbs";
 import type { WelcomeInformation } from "@/components/Welcome/types";
 import Welcome from "@/components/Welcome/Welcome";
+import licenseImg from "@assets/icons/license.svg";
+import documentImg from "@assets/images/about-component/about-license-section/document.png";
 
 const About = () => {
 
@@ -13,38 +15,38 @@ const About = () => {
     const welcomeInformation: WelcomeInformation = {
         title: "Команда высококлассных специалистов",
         buttonText: "Перейти в каталог",
-        image: "[background:url('/src/assets/images/about-component/about.png')_center/cover_no-repeat]"
+        imageClass: "bg-page-about-hero"
     }
 
     const licenses: license[] = [
         {
             id: 1,
-            image: '/src/assets/icons/license.svg',
+            image: licenseImg,
             title: 'Официальный дистрибьютор материалов марки ELF'
         },
         {
             id: 2,
-            image: '/src/assets/images/about-component/about-license-section/document.png',
+            image: documentImg,
             title: 'Официальный дистрибьютор материалов марки ШЕЛЛ'
         },
         {
             id: 3,
-            image: '/src/assets/icons/license.svg',
+            image: licenseImg,
             title: 'Официальный партнер Castrol'
         },
         {
             id: 4,
-            image: '/src/assets/icons/license.svg',
+            image: licenseImg,
             title: 'Официальный дистрибьютор материалов марки Mobil'
         },
         {
             id: 5,
-            image: '/src/assets/icons/license.svg',
+            image: licenseImg,
             title: 'Официальный дистрибьютор материалов марки LIQUI MOLY'
         },
         {
             id: 6,
-            image: '/src/assets/icons/license.svg',
+            image: licenseImg,
             title: 'Официальный дистрибьютор материалов марки Motul'
         }
     ];

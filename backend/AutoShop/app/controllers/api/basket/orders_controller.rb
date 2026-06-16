@@ -31,7 +31,12 @@ module Api
           message:      SUCCESS_MESSAGE
         }, status: :created
       rescue Product::StockInsufficient => e
-        render_error(error: "validation_error", message: e.message, status: :bad_request)
+        basket.sync_to_available_stock!
+        render_error(
+          error:   "validation_error",
+          message: "#{e.message}. Количество в корзине обновлено до доступного на складе.",
+          status:  :bad_request
+        )
       rescue ActiveRecord::RecordInvalid => e
         render_error(
           error:   "validation_error",

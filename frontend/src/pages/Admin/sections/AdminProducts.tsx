@@ -9,13 +9,13 @@ import {
     type ProductForm
 } from "@/api/admin";
 import type { Product } from "@/pages/Catalog/CatalogProducts/types";
+import { resolveProductImage } from "@/utils/productImage";
 
 interface FormState {
     name: string;
     cost: string;
     sale_cost: string;
     category_id: string;
-    picture: string;
     description: string;
     stock: string;
 }
@@ -25,7 +25,6 @@ const emptyForm: FormState = {
     cost: "",
     sale_cost: "-1",
     category_id: "",
-    picture: "",
     description: "",
     stock: "0"
 };
@@ -42,6 +41,8 @@ const AdminProducts = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [showForm, setShowForm] = useState<boolean>(false);
     const [form, setForm] = useState<FormState>(emptyForm);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [currentPicture, setCurrentPicture] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
     const [saving, setSaving] = useState<boolean>(false);
 
@@ -72,6 +73,8 @@ const AdminProducts = () => {
     function startCreate() {
         setEditingId(null);
         setForm({ ...emptyForm, category_id: categories[0] ? String(categories[0].id) : "" });
+        setImageFile(null);
+        setCurrentPicture(null);
         setFormError(null);
         setShowForm(true);
     }
@@ -83,10 +86,11 @@ const AdminProducts = () => {
             cost: String(product.cost),
             sale_cost: String(product.sale_cost ?? -1),
             category_id: "",
-            picture: product.picture ?? "",
             description: product.description ?? "",
             stock: String(product.stock)
         });
+        setImageFile(null);
+        setCurrentPicture(product.picture ?? null);
         setFormError(null);
         setShowForm(true);
     }
@@ -94,6 +98,8 @@ const AdminProducts = () => {
     function cancelForm() {
         setEditingId(null);
         setForm(emptyForm);
+        setImageFile(null);
+        setCurrentPicture(null);
         setFormError(null);
         setShowForm(false);
     }
@@ -129,7 +135,6 @@ const AdminProducts = () => {
             cost,
             sale_cost: saleCost,
             category_id: categoryId,
-            picture: form.picture.trim() || undefined,
             description: form.description.trim() || undefined,
             stock
         };
@@ -145,12 +150,11 @@ const AdminProducts = () => {
         setSaving(true);
         try {
             if (editingId) {
-                // category_id отправляем только если выбрана корректная категория
                 const { category_id, ...rest } = payload;
                 const update = Number.isInteger(category_id) && category_id > 0 ? payload : rest;
-                await updateAdminProduct(editingId, update);
+                await updateAdminProduct(editingId, update, imageFile);
             } else {
-                await createAdminProduct(payload);
+                await createAdminProduct(payload, imageFile);
             }
             cancelForm();
             await loadProducts();
@@ -170,6 +174,18 @@ const AdminProducts = () => {
             setError(err instanceof Error ? err.message : "Не удалось удалить товар");
         }
     }
+
+    const previewProduct: Product | null = editingId
+        ? {
+              id: editingId,
+              name: form.name,
+              cost: Number(form.cost) || 0,
+              sale_cost: Number(form.sale_cost) || -1,
+              picture: currentPicture,
+              description: form.description,
+              stock: Number(form.stock) || 0
+          }
+        : null;
 
     return (
         <div>
@@ -215,8 +231,22 @@ const AdminProducts = () => {
                         <input type="number" min={0} step="1" className={inputClasses} value={form.stock} onChange={(e) => setField("stock", e.target.value)} />
                     </label>
                     <label className="flex flex-col gap-y-1">
-                        <span className="text-[0.875rem] font-medium text-black2">Путь к картинке</span>
-                        <input className={inputClasses} value={form.picture} onChange={(e) => setField("picture", e.target.value)} placeholder="/images/filter.jpg" />
+                        <span className="text-[0.875rem] font-medium text-black2">
+                            Изображение товара (необязательно)
+                        </span>
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            className={inputClasses}
+                            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                        />
+                        {previewProduct && (currentPicture || imageFile) ? (
+                            <img
+                                src={imageFile ? URL.createObjectURL(imageFile) : resolveProductImage(previewProduct)}
+                                alt="Превью"
+                                className="mt-2 max-h-32 w-auto object-contain border border-grey"
+                            />
+                        ) : null}
                     </label>
                     <label className="flex flex-col gap-y-1 md:col-span-2">
                         <span className="text-[0.875rem] font-medium text-black2">Описание</span>

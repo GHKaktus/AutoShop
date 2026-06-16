@@ -209,6 +209,36 @@ module Api
         assert_equal "validation_error", response.parsed_body["error"]
       end
 
+      test "PUT /admin/users/:id/role prevents admin from demoting themselves" do
+        put admin_user_role_path(@admin.id),
+            params:  { role: "user" },
+            headers: @admin_headers,
+            as:      :json
+
+        assert_response :bad_request
+        assert_equal "validation_error", response.parsed_body["error"]
+        assert_match(/Нельзя снять с себя роль администратора/, response.parsed_body["message"])
+        assert @admin.reload.admin?
+      end
+
+      test "POST /admin/products creates product with uploaded image" do
+        image = fixture_file_upload("test_image.png", "image/png")
+
+        assert_difference "Product.count", 1 do
+          post admin_products_path,
+               params:  {
+                 name: "С фильтром", cost: 100, sale_cost: -1, stock: 5,
+                 category_id: @category.id, image: image
+               },
+               headers: @admin_headers
+        end
+
+        assert_response :created
+        product = Product.find(response.parsed_body["id"])
+        assert product.image.attached?
+        assert response.parsed_body["picture"].start_with?("/rails/active_storage/blobs/")
+      end
+
       test "PUT /admin/users/:id/role returns 404 for unknown user" do
         put admin_user_role_path(-1),
             params:  { role: "admin" },

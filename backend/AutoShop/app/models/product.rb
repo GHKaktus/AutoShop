@@ -4,7 +4,16 @@ class Product < ApplicationRecord
   # Эффективная цена с учётом скидки (sale_cost), выраженная в SQL для фильтров/сортировки.
   EFFECTIVE_PRICE_SQL = "CASE WHEN sale_cost >= 0 AND sale_cost < cost THEN sale_cost ELSE cost END".freeze
 
-  class StockInsufficient < StandardError; end
+  class StockInsufficient < StandardError
+    attr_reader :product
+
+    def initialize(product)
+      @product = product
+      super("Недостаточно товара «#{product.name}» на складе (доступно: #{product.stock})")
+    end
+  end
+
+  has_one_attached :image
 
   belongs_to :category
 
@@ -19,6 +28,7 @@ class Product < ApplicationRecord
   validates :description, length: { maximum: 5_000 }, allow_blank: true
   validates :picture,     length: { maximum: 500 },   allow_blank: true
   validates :stock, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validate :acceptable_image, if: -> { image.attached? }
 
   scope :in_stock,    -> { where("stock > 0") }
   scope :by_category, ->(category_id) { where(category_id: category_id) }
@@ -68,11 +78,18 @@ class Product < ApplicationRecord
 
     with_lock do
       if qty > stock
-        raise StockInsufficient,
-              "Недостаточно товара «#{name}» на складе (доступно: #{stock})"
+        raise StockInsufficient, self
       end
 
       update!(stock: stock - qty)
     end
+  end
+
+  private
+
+  def acceptable_image
+    return if image.content_type.in?(%w[image/jpeg image/png image/webp image/gif])
+
+    errors.add(:image, "должен быть файлом изображения (JPEG, PNG, WebP или GIF)")
   end
 end

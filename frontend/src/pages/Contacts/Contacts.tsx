@@ -8,7 +8,7 @@ const Contacts = () => {
     const welcomeInformation: WelcomeInformation = {
         title: "Будьте на связи с командой PROAuto",
         buttonText: "Перейти в каталог",
-        image: "[background:url('/src/assets/images/contacts/welcome-section/car-women.png')_center/cover_no-repeat]"
+        imageClass: "bg-page-contacts-hero"
     }
 
     return (

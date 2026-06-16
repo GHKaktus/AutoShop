@@ -7,6 +7,7 @@ import BurgerButton from "./HeaderComponents/BurgerButton";
 import BurgerMenu from "./HeaderComponents/BurgerMenu";
 import Button from "../ui/Button";
 import { useIsAdmin } from "@/pages/Admin/hooks";
+import logoUrl from "@assets/icons/logo.svg";
 import './styles.css';
 
 const Header = () => {
@@ -77,7 +78,7 @@ const Header = () => {
                 "
             >
                 <Link to={BASE_ROUTE}>
-                    <img src="/src/assets/icons/logo.svg" alt="Логотип компании" className="h-[46px] md:h-[56px] duration-200 hover:opacity-80" />
+                    <img src={logoUrl} alt="Логотип компании" className="h-[46px] md:h-[56px] duration-200 hover:opacity-80" />
                 </Link>
                 <MenuNavigation display="header" isHidden={isHiddenMenuNavigation}/>
                 <Button type="link" linkTo={isAdmin ? ADMIN_ROUTE : CONTACTS_ROUTE} paddingInline="px-3 md:px-5" paddingBlock="py-3" addClasses={`${isHiddenButton && 'hidden'} whitespace-nowrap text-center`}>
