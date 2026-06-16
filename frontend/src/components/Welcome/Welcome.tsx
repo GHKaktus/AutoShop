@@ -7,7 +7,8 @@ const Welcome = ({ information }: ComponentProps) => {
             <div
                 className={`
                     text-white w-full flex items-center shrink-0 
-                    bg-black ${information.image ? `${information.image}` : 'bg-home-welcome bg-home-welcome--1'} duration-400
+                    bg-black ${information.imageClass ?? information.image ?? 'bg-home-welcome bg-home-welcome--1'} duration-400
+                    bg-cover bg-center bg-no-repeat
                 `}
             >
                 <div className="container pt-60 pb-25 sm:pt-63.75 sm:pb-47.5 flex flex-col items-start justify-center gap-y-6 sm:gap-y-13">

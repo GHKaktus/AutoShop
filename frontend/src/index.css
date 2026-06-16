@@ -180,6 +180,38 @@
         background-image: url('@assets/images/catalog-component/categories/aksessuari.png');
     }
 
+    .bg-page-about-hero {
+        background-image: url('@assets/images/about-component/about.png');
+    }
+
+    .bg-page-contacts-hero {
+        background-image: url('@assets/images/contacts/welcome-section/car-women.png');
+    }
+
+    .bg-page-basket-hero {
+        background-image: url('@assets/images/home-component/welcome-section/landscape.jpg');
+    }
+
+    .bg-page-contacts-question {
+        background-image: url('@assets/images/contacts/question-section/bg-car.png');
+    }
+
+    .bg-footer {
+        background-image: url('@assets/images/global-components/footer-bg.png');
+    }
+
+    .bg-home-about-temp {
+        background-image: url('@assets/images/global-components/temp-image.png');
+    }
+
+    .icon-tel {
+        background-image: url('@assets/icons/tel-icon.svg');
+    }
+
+    .icon-email {
+        background-image: url('@assets/icons/email-icon.svg');
+    }
+
     .paganation-is-active {
         background-color: var(--color-red);
     }

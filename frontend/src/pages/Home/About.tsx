@@ -18,7 +18,7 @@ const About = () => {
                     О компании
                 </h2>
                 <div className="flex flex-col items-center lg:flex-row lg:items-start gap-6">
-                    <div className="max-w-90 w-full h-86.75 lg:shrink-0 [background:url('/src/assets/images/global-components/temp-image.png')_center/100%_no-repeat]">
+                    <div className="max-w-90 w-full h-86.75 lg:shrink-0 bg-home-about-temp bg-center bg-[length:100%] bg-no-repeat">
 
                     </div>
                     <div className="

@@ -17,4 +17,15 @@ class Basket < ApplicationRecord
   def clear!
     basket_items.destroy_all
   end
+
+  def sync_to_available_stock!
+    basket_items.includes(:product).find_each do |item|
+      available = item.product.stock
+      if available <= 0
+        item.destroy!
+      elsif item.quantity > available
+        item.update!(quantity: available)
+      end
+    end
+  end
 end

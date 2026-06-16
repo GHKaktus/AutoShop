@@ -64,6 +64,7 @@ export const useOffer = () => {
             dispatch(resetBasket());
         } catch (err) {
             setError(err instanceof Error ? err.message : "Не удалось оформить заказ");
+            dispatch(fetchBasket());
         } finally {
             setSubmitting(false);
         }

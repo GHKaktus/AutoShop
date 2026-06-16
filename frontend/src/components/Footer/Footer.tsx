@@ -4,6 +4,7 @@ import type { ElementLinks } from "./types";
 import Button from "@components/ui/Button";
 import { type Category } from "@/store/categories";
 import { useFooterDatasets } from "./hooks";
+import logoUrl from "@assets/icons/logo.svg";
 
 const Footer = () => {
 
@@ -21,14 +22,17 @@ const Footer = () => {
                 after:w-full 
                 after:h-full 
                 after:z-1 
-                after:[background:url('/src/assets/images/global-components/footer-bg.png')_center/cover_no-repeat]
+                after:bg-footer
+                after:bg-cover
+                after:bg-center
+                after:bg-no-repeat
             "
         >
             <h2 className="visually-hidden">Дополнительная информация и контакты компании</h2>
             <div className="container relative z-2 grid grid-cols-1 grid-rows-auto md:grid-cols-2 md:grid-rows-2 lg:grid-cols-[210px_auto_240px] lg:grid-rows-1 gap-x-2 gap-y-10 bg-transparent">
                 <div className="flex flex-col items-center md:items-start gap-y-12 md:col-start-1 md:row-start-2 lg:row-start-1">
                     <Link to={BASE_ROUTE}>
-                        <img src="/src/assets/icons/logo.svg" alt="Логотип компании" className="duration-200 hover:opacity-80" />
+                        <img src={logoUrl} alt="Логотип компании" className="duration-200 hover:opacity-80" />
                     </Link>
                     <div className="text-[1rem] opacity-[0.5] font-medium leading-normal tracking-normal">
                         <p>
@@ -71,7 +75,8 @@ const Footer = () => {
                                 before:block
                                 before:w-5
                                 before:aspect-square
-                                before:[background:url('/src/assets/icons/tel-icon.svg')_center/100%_no-repeat]
+                                before:icon-tel
+                                before:bg-center before:bg-[length:100%] before:bg-no-repeat
                             "
                         >
                             +7 {'('}978{')'} 575 73 56
@@ -84,7 +89,8 @@ const Footer = () => {
                                 before:block
                                 before:w-5
                                 before:aspect-square
-                                before:[background:url('/src/assets/icons/email-icon.svg')_center/100%_no-repeat]
+                                before:icon-email
+                                before:bg-center before:bg-[length:100%] before:bg-no-repeat
                             "
                         >
                             avantix5@gmail.com

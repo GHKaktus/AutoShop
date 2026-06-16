@@ -82,7 +82,7 @@ const QuestionSection = () => {
     }
 
     return (
-        <section className="relative py-[88px] [background:url('/src/assets/images/contacts/question-section/bg-car.png')_center/cover_no-repeat]">
+        <section className="relative py-[88px] bg-page-contacts-question bg-cover bg-center bg-no-repeat">
             <div className="relative z-2 container text-white flex flex-col items-center">
                 <Title>
                     Вопросы?

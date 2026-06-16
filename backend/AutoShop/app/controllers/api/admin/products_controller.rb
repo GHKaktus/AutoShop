@@ -14,7 +14,8 @@ module Api
       end
 
       def create
-        product = Product.new(product_params)
+        product = Product.new(product_attributes)
+        product.image.attach(params[:image]) if params[:image].present?
 
         if product.save
           render json: ProductSerializer.as_json(product), status: :created
@@ -30,8 +31,10 @@ module Api
 
       def update
         product = Product.find(params[:id])
+        product.assign_attributes(product_attributes)
+        product.image.attach(params[:image]) if params[:image].present?
 
-        if product.update(product_params)
+        if product.save
           render json: ProductSerializer.as_json(product)
         else
           render_validation_error(product)
@@ -55,8 +58,12 @@ module Api
         )
       end
 
+      def product_attributes
+        product_params.except(:image)
+      end
+
       def product_params
-        params.permit(:name, :cost, :sale_cost, :picture, :description, :stock, :category_id)
+        params.permit(:name, :cost, :sale_cost, :picture, :description, :stock, :category_id, :image)
       end
     end
   end

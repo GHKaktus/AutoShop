@@ -12,7 +12,7 @@ import { useBasket, pluralizeProducts } from "./hooks";
 const welcomeInfo: WelcomeInformation = {
     title: "Корзина",
     buttonText: "Перейти в каталог",
-    image: "[background:url('/src/assets/images/home-component/welcome-section/landscape.jpg')_center/cover_no-repeat]"
+    imageClass: "bg-page-basket-hero"
 };
 
 const Basket = () => {

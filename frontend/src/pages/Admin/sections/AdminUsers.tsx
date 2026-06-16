@@ -13,11 +13,24 @@ const ROLE_LABELS: Record<UserRole, string> = {
 
 const ROLE_OPTIONS = Object.keys(ROLE_LABELS) as UserRole[];
 
+function currentUserIdFromToken(): number | null {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
+        const id = Number(payload.sub);
+        return Number.isFinite(id) ? id : null;
+    } catch {
+        return null;
+    }
+}
+
 const AdminUsers = () => {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [busyId, setBusyId] = useState<number | null>(null);
+    const currentUserId = currentUserIdFromToken();
 
     async function load() {
         setLoading(true);
@@ -76,9 +89,10 @@ const AdminUsers = () => {
                                     <td className="py-2 pr-3">
                                         <select
                                             value={u.role}
-                                            disabled={busyId === u.id}
+                                            disabled={busyId === u.id || u.id === currentUserId}
                                             onChange={(e) => handleRoleChange(u, e.target.value as UserRole)}
-                                            className="border-2 border-grey focus:border-red outline-none px-3 py-1.5 text-black2 duration-200"
+                                            className="border-2 border-grey focus:border-red outline-none px-3 py-1.5 text-black2 duration-200 disabled:opacity-60"
+                                            title={u.id === currentUserId ? "Нельзя изменить свою роль" : undefined}
                                         >
                                             {ROLE_OPTIONS.map((r) => (
                                                 <option key={r} value={r}>{ROLE_LABELS[r]}</option>

@@ -31,6 +31,14 @@ module Api
           )
         end
 
+        if account.id == current_account.id && role_param != "admin"
+          return render_error(
+            error:   "validation_error",
+            message: "Нельзя снять с себя роль администратора",
+            status:  :bad_request
+          )
+        end
+
         account.update!(role: role_param)
         render json: AccountSerializer.as_json(account)
       end

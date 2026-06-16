@@ -14,9 +14,10 @@ function authHeaders(): Record<string, string> {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
     const headers: Record<string, string> = {
         Accept: "application/json",
-        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(options.body && !isFormData ? { "Content-Type": "application/json" } : {}),
         ...authHeaders(),
         ...(options.headers as Record<string, string> | undefined)
     };
